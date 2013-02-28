@@ -131,9 +131,9 @@ for add in xrange(len(ref_path)):
                                 taper=inp.taper, hfreq=inp.hfreq, lfreq=inp.lfreq)
 
     if inp.reflabel == 'REAL':
-        tr_cut = time_window(tr_1_proc, req_phase=inp.req_phase, 
-                                tb=inp.tb, ta=inp.ta, model=inp.model)
-        cut_info = tr_cut.epi_dist()
+        tr_cut = time_window(tr_1_proc)
+        cut_info = tr_cut.epi_dist(req_phase=inp.req_phase, tb=inp.tb, 
+                                    ta=inp.ta, model=inp.model)
         if cut_info[0] == 'Y':
             tr_1_proc.trim(starttime=events[0]['datetime']+cut_info[1], \
                             endtime=events[0]['datetime']+cut_info[2])
