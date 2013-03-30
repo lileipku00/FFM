@@ -40,10 +40,10 @@ class input_handler:
         self.wf1label = config.get('address', 'wf1_label')
         self.stfpath = eval(config.get('address', 'stf'))
         self.identity = eval(config.get('station', 'identity'))
-        self.req_phase = eval(config.get('station', 'req_phase'))
-        self.tb = float(config.get('station', 'tb'))
-        self.ta = float(config.get('station', 'ta'))
-        self.model = eval(config.get('station', 'model'))
+        self.req_phase = eval(config.get('phase', 'req_phase'))
+        self.tb = float(config.get('phase', 'tb'))
+        self.ta = float(config.get('phase', 'ta'))
+        self.model = eval(config.get('phase', 'model'))
         self.stfgauss = eval(config.get('preprocess', 'stf_gauss'))
         self.stf_halfdur = float(config.get('preprocess', 'stf_halfdur'))
         self.stfreal = eval(config.get('preprocess', 'stf_real'))
@@ -82,6 +82,7 @@ inp = input_handler(inputpath)
 st_1_proc=[]
 st_2_proc=[]
 epidist=[]
+est_arrival=[]
 ref_path = glob.glob(os.path.join(inp.refpath, inp.identity))
 if inp.reflabel == 'REAL':
     events, address_events = \
@@ -99,9 +100,13 @@ if inp.stfreal:
 elif inp.stfgauss:
     print '* Use Gaussian STF'
         
-print '* Number of stations: %s' %len(ref_path)
 print '-------------------'
+print '* Number of stations: %s' %len(ref_path)
 for add in xrange(len(ref_path)):
+    sys.stdout.write('\r')
+    sys.stdout.write("[%-100s] %d%%" % ('='*int(100.*(add+1)/len(ref_path)),
+                                            100.*(add+1)/len(ref_path)))
+    sys.stdout.flush()
     add_ref = ref_path[add]
     id_ref_tmp = add_ref.split('/')[-1].split('.')
     id_ref = id_ref_tmp[1] + '.' + id_ref_tmp[2] + '.' + id_ref_tmp[3]
@@ -135,18 +140,23 @@ for add in xrange(len(ref_path)):
                                 tb=inp.tb, ta=inp.ta, model=inp.model)
         cut_info = tr_cut.epi_dist()
         if cut_info[0] == 'Y':
-            tr_1_proc.trim(starttime=events[0]['datetime']+cut_info[1], \
-                            endtime=events[0]['datetime']+cut_info[2])
+            tr_1_proc.trim(starttime=events[0]['datetime']+cut_info[2], \
+                            endtime=events[0]['datetime']+cut_info[3])
             try: 
                 tr_1_proc.normalize()
                 st_1_proc.append(tr_1_proc)
+                est_arrival.append(cut_info[1])
                 if tr_2: 
-                    tr_2_proc.trim(starttime=UTCDateTime(0)+cut_info[1], \
-                                    endtime=UTCDateTime(0)+cut_info[2])
+                    tr_2_proc.trim(starttime=UTCDateTime(0)+cut_info[2], \
+                                    endtime=UTCDateTime(0)+cut_info[3])
                     tr_2_proc.normalize()
                     st_2_proc.append(tr_2_proc)
-                epidist.append(cut_info[3])
+                epidist.append(cut_info[4])
             except: pass
+    else:
+        st_1_proc.append(tr_1_proc)
+        st_2_proc.append(tr_2_proc)
+        epidist.append(add)
 
 #if inp.reflabel == 'REAL':
 #    for tr in st_1_proc:
@@ -155,7 +165,7 @@ for add in xrange(len(ref_path)):
 #maxi=0
 #for i in xrange(len(st_1_proc)):
 #    maxi=max(maxi, np.abs(st_1_proc[i]).max(), np.abs(st_2_proc[i]).max())
-maxi=1
+maxi=0.1
 
 # find the minimum time for plotting
 mini_time = st_1_proc[0].stats.starttime
@@ -167,7 +177,8 @@ for i in xrange(len(st_1_proc)):
     #    print 'ERROR: %s and %s are not the same!' %(st_1_id, st_2_id)
     #    sys.exit(2)
     if tr_2: 
-        mini_time=min(mini_time, st_1_proc[i].stats.starttime, st_2_proc[i].stats.starttime + dt_sr)
+        mini_time=min(mini_time, st_1_proc[i].stats.starttime, 
+                            st_2_proc[i].stats.starttime + dt_sr)
     else:
         mini_time=min(mini_time, st_1_proc[i].stats.starttime)
     
@@ -177,15 +188,17 @@ cc_info = []
 for i in xrange(len(st_1_proc)):
     dt=st_1_proc[i].stats.delta
     npts=st_1_proc[i].stats.npts
-    t_1 = np.linspace(0., dt*(npts-1), npts) + (st_1_proc[i].stats.starttime-mini_time)
+    #t_1 = np.linspace(0., dt*(npts-1), npts) + (st_1_proc[i].stats.starttime-mini_time)
+    t_1 = np.linspace(0., dt*(npts-1), npts)
     ax1.plot(t_1, st_1_proc[i].data/maxi+epidist[i], 'b', label=inp.reflabel)
-    ax1.text(t_1[0] - 0.2, epidist[i], '%s.%s.%s.%s'
+    ax1.text(t_1[-1] + 0.2, epidist[i], '%s.%s.%s.%s'
                         %(st_1_proc[i].stats.network, st_1_proc[i].stats.station,
-                        st_1_proc[i].stats.location, st_1_proc[i].stats.channel))
+                        st_1_proc[i].stats.location, st_1_proc[i].stats.channel)) 
     if tr_2:
         dt=st_2_proc[i].stats.delta
         npts=st_2_proc[i].stats.npts
-        t_2 = np.linspace(0., dt*(npts-1), npts) + (st_2_proc[i].stats.starttime + dt_sr-mini_time)
+        #t_2 = np.linspace(0., dt*(npts-1), npts) + (st_2_proc[i].stats.starttime + dt_sr-mini_time)
+        t_2 = np.linspace(0., dt*(npts-1), npts)
         ax1.plot(t_2, st_2_proc[i].data/maxi+epidist[i], 'gray', label=inp.wf1label)
         #Cross Correlation Coefficient
         t_cross, coeff_cross = xcorr(st_1_proc[i], st_2_proc[i],
@@ -197,7 +210,7 @@ for i in xrange(len(st_1_proc)):
         ax2.scatter(coeff_cross, epidist[i], color = 'blue')
         ax2.axvline(x = 0.95, color = 'green', ls = 'dashed')
         ax3.scatter(t_cross/st_1_proc[i].stats.sampling_rate, epidist[i], color = 'red')
-
+ax1.vlines(inp.tb, epidist[0]-3., epidist[-1], 'red')
 l1, = ax1.plot(st_1_proc[0].data+epidist[0], 'b'); l1.remove()
 if tr_2: 
     labels=[inp.reflabel, inp.wf1label]

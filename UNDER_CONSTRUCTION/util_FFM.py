@@ -177,6 +177,6 @@ class time_window:
             phase_exist = 'N'
             t_before = t_phase
             t_after = t_phase
-        return (phase_exist, t_before, t_after, self.dist)
+        return (phase_exist, t_phase, t_before, t_after, self.dist)
 
 
