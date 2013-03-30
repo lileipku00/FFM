@@ -2,4 +2,4 @@
 FFM
 ===
 
-Preprocessing and Finite Frequency Measurements
+Collection of softwares for preprocessing and Finite Frequency Measurements.
