@@ -150,29 +150,25 @@ def RTR(tr, degree = 2):
 
 #----------------------------- time_window -----------------------------
 class time_window:
-    def __init__(self, tr, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
+    def __init__(self, tr):
         self.id='%s.%s.%s.%s' %(tr.stats.network, tr.stats.station,\
                                     tr.stats.location, tr.stats.channel)
         self.stats=tr.stats
-        self.req_phase=req_phase
-        self.tb = tb
-        self.ta = ta
-        self.model=model
-    def epi_dist(self):
+    def epi_dist(self, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
         self.dist = locations2degrees(lat1 = self.stats.sac.evla, \
                         long1 = self.stats.sac.evlo, \
                         lat2 = self.stats.sac.stla, \
                         long2 = self.stats.sac.stlo)
-        tt = getTravelTimes(self.dist, self.stats.sac.evdp, model=self.model)
+        tt = getTravelTimes(self.dist, self.stats.sac.evdp, model=model)
         t_phase = -12345.0
         for tt_item in tt:
-            if tt_item['phase_name'] == self.req_phase:
+            if tt_item['phase_name'] == req_phase:
                 t_phase = tt_item['time']
                 phase_exist = 'Y'
                 break
         if t_phase != -12345.0:
-            t_before = t_phase - self.tb
-            t_after = t_phase + self.ta
+            t_before = t_phase - tb
+            t_after = t_phase + ta
         else:
             phase_exist = 'N'
             t_before = t_phase
