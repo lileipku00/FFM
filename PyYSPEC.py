@@ -19,7 +19,9 @@
 
 # Added this line for python 2.5 compatibility
 from __future__ import with_statement
-import sys
+import filecmp
+import sys, os
+import shutil
 
 from util_PyYSPEC import *
 
@@ -31,6 +33,20 @@ create_source_inp(indir=indir)
 
 try: print 'input:\n%s %s %s %s' %(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
 except: sys.exit('ERROR in the number of inputs!')
+
+if os.path.isfile(os.path.join(sys.argv[5], 'yspec.in')):
+    if not filecmp.cmp(sys.argv[3], os.path.join(sys.argv[5], 'yspec.in')):
+        print '\nCurrent event was simulated before with different setting.'
+        print 'Removing the previous one and start the new simulation.'
+        print 'Removed directory:'
+        print sys.argv[5]
+        shutil.rmtree(sys.argv[5])
+    else:
+        print '\nThe simulation was done before and it is found in the archive:'
+        print sys.argv[5]
+else:
+    print '\nStart a new simulation for:'
+    print sys.argv[5]
 run_yspec(indir_submit=sys.argv[2], yspec_inp=sys.argv[3], 
             num_proc=sys.argv[4], indir_output=sys.argv[5])
 
