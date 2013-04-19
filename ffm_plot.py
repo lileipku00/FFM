@@ -37,7 +37,7 @@ normalize = True
 
 # Try to read the event address
 try: ev_add = sys.argv[1]
-except: print 'python ffm_plot <address>'
+except: sys.exit('python ffm_plot <address>')
 
 #--------------------------- preprocess --------------------------------
 def preprocess(tr, lfreq, hfreq):
@@ -137,34 +137,36 @@ for add in grf_add:
         # STF*GRF
         tr_cmp_stf = convSTF(tr_cmp, STF_tr)
         grf_stf = convSTF(grf, STF_tr)
-         
-        if normalize:
-            t = np.linspace(0, tr_cmp.stats.npts/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
-            plt.plot(t, tr_cmp.data/tr_cmp.max()+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
-            t = np.linspace(0, tr_real.stats.npts/tr_real.stats.sampling_rate, tr_real.stats.npts)
-            plt.plot(t, tr_real.data/tr_real.max()+grf.stats.sac.gcarc, 'black', label='REAL')
-            t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
-            plt.plot(t, grf.data/grf.max()+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
-            plt.vlines(tb, grf.stats.sac.gcarc-1, grf.stats.sac.gcarc+1, linestyle='dashed')
-             
-            t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
-            plt.plot(t, tr_cmp_stf.data/tr_cmp_stf.max()+grf.stats.sac.gcarc, 'b', label='STF*GRF')
-            t = np.linspace(t_diff, grf_stf.stats.npts/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
-            plt.plot(t, grf_stf.data/grf_stf.max()+grf_stf.stats.sac.gcarc, 'r', label='STF*GRF(cut)')
+        try:
+            if normalize:
+                t = np.linspace(0, tr_cmp.stats.npts/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
+                plt.plot(t, tr_cmp.data/abs(tr_cmp.max())+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
+                t = np.linspace(0, tr_real.stats.npts/tr_real.stats.sampling_rate, tr_real.stats.npts)
+                plt.plot(t, tr_real.data/abs(tr_real.max())+grf.stats.sac.gcarc, 'black', label='REAL')
+                t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
+                plt.plot(t, grf.data/abs(grf.max())+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
+                plt.vlines(tb, grf.stats.sac.gcarc-1, grf.stats.sac.gcarc+1, linestyle='dashed')
+                 
+                t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
+                plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'b', label='STF*GRF')
+                t = np.linspace(t_diff, grf_stf.stats.npts/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
+                plt.plot(t, grf_stf.data/abs(grf_stf.max())+grf_stf.stats.sac.gcarc, 'r', label='STF*GRF(cut)')
 
-        else:
-            t = np.linspace(0, tr_cmp.stats.npts/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
-            plt.plot(t, tr_cmp.data/maxi*scale+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
-            t = np.linspace(0, tr_real.stats.npts/tr_real.stats.sampling_rate, tr_real.stats.npts)
-            plt.plot(t, tr_real.data/maxi*scale/1.e9+grf.stats.sac.gcarc, 'black', label='REAL')
-            t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
-            plt.plot(t, grf.data/maxi*scale+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
-            plt.vlines(tb, grf.stats.sac.gcarc-20, grf.stats.sac.gcarc+20, linestyle='dashed')
-             
-            t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
-            plt.plot(t, tr_cmp_stf.data/maxi*scale+grf.stats.sac.gcarc, 'b', label='STF*GRF')
-            t = np.linspace(t_diff, grf_stf.stats.npts/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
-            plt.plot(t, grf_stf.data/maxi*scale+grf_stf.stats.sac.gcarc, 'r', label='STF*GRF(cut)')
+            else:
+                t = np.linspace(0, tr_cmp.stats.npts/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
+                plt.plot(t, tr_cmp.data/maxi*scale+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
+                t = np.linspace(0, tr_real.stats.npts/tr_real.stats.sampling_rate, tr_real.stats.npts)
+                plt.plot(t, tr_real.data/maxi*scale/1.e9+grf.stats.sac.gcarc, 'black', label='REAL')
+                t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
+                plt.plot(t, grf.data/maxi*scale+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
+                plt.vlines(tb, grf.stats.sac.gcarc-20, grf.stats.sac.gcarc+20, linestyle='dashed')
+                 
+                t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
+                plt.plot(t, tr_cmp_stf.data/maxi*scale+grf.stats.sac.gcarc, 'b', label='STF*GRF')
+                t = np.linspace(t_diff, grf_stf.stats.npts/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
+                plt.plot(t, grf_stf.data/maxi*scale+grf_stf.stats.sac.gcarc, 'r', label='STF*GRF(cut)')
+        except Exception, e:
+            print e
 
         plt.xlabel('Time (sec)') 
         plt.ylabel('Displacement')
@@ -172,7 +174,8 @@ for add in grf_add:
         plt.legend()
         if not os.path.isdir(os.path.join(ev_add, 'figures', 'comparison')):
             os.mkdir(os.path.join(ev_add, 'figures', 'comparison'))
-        plt.savefig(os.path.join(ev_add, 'figures', 'comparison', grf_name + '.png'))
+        plt.show()
+        #plt.savefig(os.path.join(ev_add, 'figures', 'comparison', grf_name + '.png'))
         gca_arv.append([grf.stats.sac.gcarc, grf.stats.sac.a])
 
 plt.show()
