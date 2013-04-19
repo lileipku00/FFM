@@ -208,7 +208,7 @@ if not os.path.isdir(os.path.join(path1, 'grf_cut')):
 all_files = glob.glob(os.path.join(path1, 'SAC_realName', '*.*.*'))
 for i in range(0, len(all_files)):
     tr = read(os.path.join(all_files[i]))[0]
-    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=0, ta=25.6)
+    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=10, ta=25.6)
     if phase_flag == 'Y':
         tr_sliced.stats.sac.o = O
         #tr_sliced.stats.sac.a = A

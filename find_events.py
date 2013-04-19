@@ -4,7 +4,7 @@ import numpy as np
 from obspy.imaging.beachball import Beach
 import os
 
-min_mag = 6.0
+min_mag = 6.5
 max_mag = 10.0
 plot_ev = True
 
