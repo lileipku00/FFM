@@ -1,12 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#-------------------------------------------------------------------
+#   Filename:  find_events.py
+#   Purpose:   create selected_events.txt file out of pdata_events.txt 
+#   Author:    Kasra Hosseini
+#   Email:     hosseini@geophysik.uni-muenchen.de
+#   License:   GPLv3
+#-------------------------------------------------------------------
+
+#-----------------------------------------------------------------------
+#----------------Import required Modules (Python and Obspy)-------------
+#-----------------------------------------------------------------------
+
+# Required Python and Obspy modules will be imported in this part.
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 from obspy.imaging.beachball import Beach
 import os
 
+# ------------------- INPUT -----------------------------
 min_mag = 6.5
 max_mag = 10.0
 plot_ev = True
+# -------------------------------------------------------
 
 fio_pdata_events = open(os.path.join('.', 'results', 'pdata_events.txt'), 'r')
 pdata_events = fio_pdata_events.readlines()[1:]
@@ -19,7 +37,6 @@ for i in range(len(pdata_events)):
         enum += 1
 
 print '%s found events' %(enum)
-
 fio_selected_events.close()
 
 if plot_ev:

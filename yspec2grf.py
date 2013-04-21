@@ -33,7 +33,12 @@ t = UTCDateTime(sys.argv[3])
     
 ###################### epi_dist ###################################
 def epi_dist(tr, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
-    
+    """
+    returns the O, A, B, E, GCARC for SAC headers
+    this will be done directly by reading the a from SAC header!
+    this has been done to keep everything compatible with
+    Karin's code
+    """    
     if not tr.stats.sac.a == -12345.0:
         t_phase = tr.stats.sac.a
         phase_exist = 'Y'
@@ -107,6 +112,9 @@ def epi_dist(tr, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
 
 ###################### y2m ###################################
 def y2m(file, path):
+    '''
+    yspec to SAC format
+    '''
     stationID = int(file.split('.')[-1])
     chans = ['BHZ', 'BHN', 'BHE']
     dat = np.loadtxt(file)
@@ -180,7 +188,7 @@ else:
     print 'The directory is already there:'
     print os.path.join(path1, 'SAC_realName')
 
-print 'Start filling in the arrival time and gcarc!' 
+print '\nStart filling in the arrival time and gcarc!' 
 fio_ttime = open(path3, 'r')
 fi_ttime = fio_ttime.readlines()
 for _i in xrange(len(fi_ttime)):
@@ -201,14 +209,14 @@ for _i in xrange(len(fi_ttime)):
         print e
 
 req_phase = sys.argv[5]
-print '\nCutting Time-Window aournd %s' %req_phase
+print '\nCutting Time-Window around %s' %req_phase
 if not os.path.isdir(os.path.join(path1, 'grf_cut')):
     os.mkdir(os.path.join(path1, 'grf_cut'))
 
 all_files = glob.glob(os.path.join(path1, 'SAC_realName', '*.*.*'))
 for i in range(0, len(all_files)):
     tr = read(os.path.join(all_files[i]))[0]
-    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=10, ta=25.6)
+    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=0, ta=25.6)
     if phase_flag == 'Y':
         tr_sliced.stats.sac.o = O
         #tr_sliced.stats.sac.a = A
@@ -228,7 +236,7 @@ if req_phase in ['P', 'Pdiff']:
     for fi in phase_ls:
         shutil.move(fi, data_dest)
 elif req_phase in ['SH']:
-    print 'it just move the BHE and BHN!'
+    print 'it just moves the BHE and BHN!'
     phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHE'))
     phase_ls.append(glob.glob(os.path.join(path1, 'grf_cut', '*.BHN')))
     for fi in phase_ls:

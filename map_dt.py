@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#-------------------------------------------------------------------
+#   Filename:  map_dt.py
+#   Purpose:   plot dt maps based on the Finite Frequency results 
+#   Author:    Kasra Hosseini
+#   Email:     hosseini@geophysik.uni-muenchen.de
+#   License:   GPLv3
+#-------------------------------------------------------------------
+
+#-----------------------------------------------------------------------
+#----------------Import required Modules (Python and Obspy)-------------
+#-----------------------------------------------------------------------
+
+# Required Python and Obspy modules will be imported in this part.
 import glob
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
@@ -5,10 +21,12 @@ import numpy as np
 import os
 import sys
 
+# ------------------- INPUT -----------------------------
 processed_events_add = '/import/neptun-radler/hosseini-downloads/KASRA/FFM'
 band = 'band01'
 xcorr_limit = 0.95
 proc_ev_ls = glob.glob(os.path.join(processed_events_add, '*.*.*.*'))
+# -------------------------------------------------------
 
 print '%s processed events found!' %(len(proc_ev_ls))
 failed = 0
@@ -25,8 +43,6 @@ for i in range(len(proc_ev_ls)):
             mrr, mtt, mpp, mrt, mrp, mtp = f_source[13].split()
         except Exception, e:
             mrr, mtt, mpp, mrt, mrp, mtp = f_source[7].split()
-
-        
         f_dt = fio_dt.readlines()
         for j in range(2, len(f_dt)):
             info_dt = f_dt[j].split()

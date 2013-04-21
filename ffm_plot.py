@@ -22,18 +22,24 @@ import os
 import scipy.io
 import sys
 
+# ------------------- INPUT -----------------------------
 # Inputs: (XXX maybe better to move all these to a cfg file?!)
 gallery_add = '/import/neptun-radler/hosseini-downloads/KASRA/FFM/YSPEC_SYN_GALLERY'
 psdata_add = '/import/neptun-radler/AmplitudeProjects/psdata/' 
 pdata_add = '/import/neptun-radler/AmplitudeProjects/pdata_processed/psdata_events/'
+# scale the waveforms when it plots them
 scale = 100
 min_epi = 90.0
 max_epi = 180.0
+# time to cut the waveforms (tb: time before, ta: time after)
 tb = 20
 ta = 100
+# apply a bandpass filter to the data
 lfreq = 0.01
 hfreq = 0.5
+# normalize the data
 normalize = True
+# -------------------------------------------------------
 
 # Try to read the event address
 try: ev_add = sys.argv[1]
@@ -145,7 +151,7 @@ for add in grf_add:
                 plt.plot(t, tr_real.data/abs(tr_real.max())+grf.stats.sac.gcarc, 'black', label='REAL')
                 t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
                 plt.plot(t, grf.data/abs(grf.max())+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
-                plt.vlines(tb, grf.stats.sac.gcarc-1, grf.stats.sac.gcarc+1, linestyle='dashed')
+                plt.vlines(tb + grf.stats.sac.a - grf.stats.sac.b, grf.stats.sac.gcarc-1, grf.stats.sac.gcarc+1, linestyle='dashed')
                  
                 t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
                 plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'b', label='STF*GRF')
@@ -159,7 +165,7 @@ for add in grf_add:
                 plt.plot(t, tr_real.data/maxi*scale/1.e9+grf.stats.sac.gcarc, 'black', label='REAL')
                 t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
                 plt.plot(t, grf.data/maxi*scale+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
-                plt.vlines(tb, grf.stats.sac.gcarc-20, grf.stats.sac.gcarc+20, linestyle='dashed')
+                plt.vlines(tb + grf.stats.sac.a - grf.stats.sac.b, grf.stats.sac.gcarc-20, grf.stats.sac.gcarc+20, linestyle='dashed')
                  
                 t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
                 plt.plot(t, tr_cmp_stf.data/maxi*scale+grf.stats.sac.gcarc, 'b', label='STF*GRF')
@@ -169,7 +175,7 @@ for add in grf_add:
             print e
 
         plt.xlabel('Time (sec)') 
-        plt.ylabel('Displacement')
+        plt.ylabel('Epicentral Distance')
         plt.title('%s\nEpicentral Distance: %s' %(grf_name, grf.stats.sac.gcarc))
         plt.legend()
         if not os.path.isdir(os.path.join(ev_add, 'figures', 'comparison')):

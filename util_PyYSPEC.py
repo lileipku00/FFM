@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#-----------------------------------------------------------------------
+#   Filename:  util_PyYSPEC.py
+#   Purpose:   PyYSPEC modules
+#   Author:    Kasra Hosseini
+#   Email:     hosseini@geophysik.uni-muenchen.de
+#   License:   GPLv3
+#-----------------------------------------------------------------------
+
+#-----------------------------------------------------------------------
+#----------------Import required Modules (Python and Obspy)-------------
+#-----------------------------------------------------------------------
+
+# Required Python and Obspy modules will be imported in this part.
 import os
 import sys
 import subprocess
