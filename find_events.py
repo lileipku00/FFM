@@ -21,7 +21,7 @@ from obspy.imaging.beachball import Beach
 import os
 
 # ------------------- INPUT -----------------------------
-min_mag = 6.5
+min_mag = 7.0
 max_mag = 10.0
 plot_ev = True
 # -------------------------------------------------------
