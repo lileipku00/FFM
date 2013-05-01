@@ -21,6 +21,8 @@ import sys
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.9
+plot_on = True
+write_on = False
 plt_all_stas = False
 # -------------------------------------------------------
 
@@ -28,7 +30,7 @@ intro = 20*'-'
 intro += '\nUsage:'
 intro += '\npython plot_dT_dA.py bands[1-3] address-for-FFM-event.\n'
 intro += 20*'-'
-print intro
+#print intro
 
 bands = sys.argv[1]
 evadd = sys.argv[2]
@@ -102,47 +104,56 @@ for _i in range(len(passed_staev[0])):
     dt_all.append(dt_sta)
     da_all.append(da_sta)
 
-plt.ion()
-plt.subplot(2, 1, 1)
-for _j in range(len(dt_all)):
-    x_one_sta = []
-    y_one_sta = []
-    for _i in range(len(bands)):
-        x_one_sta.append(x_sta[_i])
-        y_one_sta.append(dt_all[_j][_i])
-    if plt_all_stas:
-        plt.plot(x_one_sta, y_one_sta, 'o-')
-plt.ylabel('Time difference (dT)', fontsize = 'x-large', weight = 'bold')
-plt.xticks(fontsize = 'x-large', weight = 'bold')
-plt.yticks(fontsize = 'x-large', weight = 'bold')
-pltitle = evname
-pltitle += '\nxcorr >= %s' %(xcorr_limit)
-plt.title(pltitle, fontsize = 'x-large', weight = 'bold')
+if write_on:
+    fio = open(os.path.join('.', 'mean_values.txt'), 'a+')
+    msg = '%s,%s,%s,%s,%s,%s,%s,%s\n' %(evname, np.mean(m_dt_all), np.mean(co_dt_all),
+                                np.mean(m_da_all), np.mean(co_da_all), 
+                                band_period[str(bands[0])], band_period[str(bands[-1])],
+                                len(m_dt_all))
+    fio.writelines(msg)
 
-# plot mean value (dt)
-x_mean = (band_period[str(bands[0])], band_period[str(bands[-1])])
-y_mean = (np.mean(m_dt_all) * band_period[str(bands[0])] + np.mean(co_dt_all),
-           np.mean(m_dt_all) * band_period[str(bands[-1])] + np.mean(co_dt_all)) 
-plt.plot(x_mean, y_mean, '--', linewidth = 3)
+if plot_on:
+    plt.ion()
+    plt.subplot(2, 1, 1)
+    for _j in range(len(dt_all)):
+        x_one_sta = []
+        y_one_sta = []
+        for _i in range(len(bands)):
+            x_one_sta.append(x_sta[_i])
+            y_one_sta.append(dt_all[_j][_i])
+        if plt_all_stas:
+            plt.plot(x_one_sta, y_one_sta, 'o-')
+    plt.ylabel('Time difference (dT)', fontsize = 'x-large', weight = 'bold')
+    plt.xticks(fontsize = 'x-large', weight = 'bold')
+    plt.yticks(fontsize = 'x-large', weight = 'bold')
+    pltitle = evname
+    pltitle += '\nxcorr >= %s' %(xcorr_limit)
+    plt.title(pltitle, fontsize = 'x-large', weight = 'bold')
 
-plt.subplot(2, 1, 2)
-for _j in range(len(da_all)):
-    x_one_sta = []
-    y_one_sta = []
-    for _i in range(len(bands)):
-        x_one_sta.append(x_sta[_i])
-        y_one_sta.append(da_all[_j][_i])
-    if plt_all_stas:
-        plt.plot(x_one_sta, y_one_sta, 'o-')
-plt.ylabel('Amplitude (dA)', fontsize = 'x-large', weight = 'bold')
-plt.xlabel('Dominant Period', fontsize = 'x-large', weight = 'bold')
-plt.xticks(fontsize = 'x-large', weight = 'bold')
-plt.yticks(fontsize = 'x-large', weight = 'bold')
+    # plot mean value (dt)
+    x_mean = (band_period[str(bands[0])], band_period[str(bands[-1])])
+    y_mean = (np.mean(m_dt_all) * band_period[str(bands[0])] + np.mean(co_dt_all),
+               np.mean(m_dt_all) * band_period[str(bands[-1])] + np.mean(co_dt_all)) 
+    plt.plot(x_mean, y_mean, '--', linewidth = 3)
 
-# plot mean value (da)
-x_mean = (band_period[str(bands[0])], band_period[str(bands[-1])])
-y_mean = (np.mean(m_da_all) * band_period[str(bands[0])] + np.mean(co_da_all),
-           np.mean(m_da_all) * band_period[str(bands[-1])] + np.mean(co_da_all)) 
-plt.plot(x_mean, y_mean, '--', linewidth = 3)
+    plt.subplot(2, 1, 2)
+    for _j in range(len(da_all)):
+        x_one_sta = []
+        y_one_sta = []
+        for _i in range(len(bands)):
+            x_one_sta.append(x_sta[_i])
+            y_one_sta.append(da_all[_j][_i])
+        if plt_all_stas:
+            plt.plot(x_one_sta, y_one_sta, 'o-')
+    plt.ylabel('Amplitude (dA)', fontsize = 'x-large', weight = 'bold')
+    plt.xlabel('Dominant Period', fontsize = 'x-large', weight = 'bold')
+    plt.xticks(fontsize = 'x-large', weight = 'bold')
+    plt.yticks(fontsize = 'x-large', weight = 'bold')
 
-plt.show()
+    # plot mean value (da)
+    x_mean = (band_period[str(bands[0])], band_period[str(bands[-1])])
+    y_mean = (np.mean(m_da_all) * band_period[str(bands[0])] + np.mean(co_da_all),
+               np.mean(m_da_all) * band_period[str(bands[-1])] + np.mean(co_da_all)) 
+    plt.plot(x_mean, y_mean, '--', linewidth = 3)
+
+    plt.show()
