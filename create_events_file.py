@@ -13,12 +13,14 @@
 #----------------Import required Modules (Python and Obspy)-------------
 #-----------------------------------------------------------------------
 
-# Required Python and Obspy modules will be imported in this part.
+# Required Python modules will be imported in this part.
 import glob
 import os
 
+#----------------- INPUT -------------------------
 # remote pdata_processed directory
 pdata_add = '/import/neptun-radler/AmplitudeProjects/pdata_processed/psdata_events'
+#-------------------------------------------------
 
 evs_ls = glob.glob(os.path.join(pdata_add, '*.*.*.*'))
 print '%s events found in the archive!' %(len(evs_ls))
@@ -49,6 +51,8 @@ for i in range(len(evs_ls)):
         print ev_name
 
 ev_info.insert(0, first_line) 
+if not os.path.isdir(os.path.join('.', 'results')):
+    os.mkdir(os.path.join('.', 'results'))
 fio_ls_event = open(os.path.join('.', 'results', 'pdata_events.txt'), 'w')
 for i in ev_info:
     fio_ls_event.writelines(i)

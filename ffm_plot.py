@@ -23,12 +23,15 @@ import scipy.io
 import sys
 
 # ------------------- INPUT -----------------------------
-# Inputs: (XXX maybe better to move all these to a cfg file?!)
+# Inputs:
 gallery_add = '/import/neptun-radler/hosseini-downloads/KASRA/FFM/YSPEC_SYN_GALLERY'
 psdata_add = '/import/neptun-radler/AmplitudeProjects/psdata/' 
 pdata_add = '/import/neptun-radler/AmplitudeProjects/pdata_processed/psdata_events/'
 # scale the waveforms when it plots them
 scale = 100
+# normalize the data
+normalize = True
+# minimum and maximum epicentral distances for plotting
 min_epi = 90.0
 max_epi = 180.0
 # time to cut the waveforms (tb: time before, ta: time after)
@@ -37,19 +40,17 @@ ta = 100
 # apply a bandpass filter to the data
 lfreq = 0.01
 hfreq = 0.5
-# normalize the data
-normalize = True
 # -------------------------------------------------------
 
 # Try to read the event address
 try: ev_add = sys.argv[1]
-except: sys.exit('python ffm_plot <address>')
+except: sys.exit('python ffm_plot <address-to-data(FFM)>')
 
 #--------------------------- preprocess --------------------------------
 def preprocess(tr, lfreq, hfreq):
     '''
     all the pre-processing will be done here! 
-    after this step the STF*tr will be done
+    after this step the STF*tr will be calculated
     '''
     tr.filter('bandpass', freqmin=lfreq, freqmax=hfreq, corners=2, zerophase=True)
 
@@ -57,6 +58,7 @@ def preprocess(tr, lfreq, hfreq):
 def readSTF(add_stf):
     """
     Read the Source Time Function
+    Sampling rate is 10Hz
     """
     #reading and creating the Source Time Function
     stf_matlab = scipy.io.loadmat(add_stf)
@@ -90,6 +92,7 @@ def convSTF(tr, STF_tr):
 ########################################################################
 ############################# Main Program #############################
 ########################################################################
+
 # address for the green's functions and extracting the event name
 grf_add = glob.glob(os.path.join(ev_add, 'data', '*.*.*'))
 ev_name = ev_add.split('/')[-1]
@@ -101,7 +104,7 @@ STF_tr = readSTF(os.path.join(pdata_add, ev_name, 'STF.mat'))
 
 if not normalize:
     maxi = 0
-    print 'Start to rescale the waveforms...',
+    print '\nStart to rescale the waveforms...',
     for add in grf_add:
         grf = read(add)[0]
         grf_name = add.split('/')[-1]
@@ -145,32 +148,32 @@ for add in grf_add:
         grf_stf = convSTF(grf, STF_tr)
         try:
             if normalize:
-                t = np.linspace(0, tr_cmp.stats.npts/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
+                t = np.linspace(0, (tr_cmp.stats.npts-1)/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
                 plt.plot(t, tr_cmp.data/abs(tr_cmp.max())+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
-                t = np.linspace(0, tr_real.stats.npts/tr_real.stats.sampling_rate, tr_real.stats.npts)
+                t = np.linspace(0, (tr_real.stats.npts-1)/tr_real.stats.sampling_rate, tr_real.stats.npts)
                 plt.plot(t, tr_real.data/abs(tr_real.max())+grf.stats.sac.gcarc, 'black', label='REAL')
-                t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
-                plt.plot(t, grf.data/abs(grf.max())+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
+                #t = np.linspace(t_diff, (grf.stats.npts-1)/grf.stats.sampling_rate+t_diff, grf.stats.npts)
+                #plt.plot(t, grf.data/abs(grf.max())+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
                 plt.vlines(tb + grf.stats.sac.a - grf.stats.sac.b, grf.stats.sac.gcarc-1, grf.stats.sac.gcarc+1, linestyle='dashed')
                  
-                t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
-                plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'b', label='STF*GRF')
-                t = np.linspace(t_diff, grf_stf.stats.npts/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
-                plt.plot(t, grf_stf.data/abs(grf_stf.max())+grf_stf.stats.sac.gcarc, 'r', label='STF*GRF(cut)')
+                t = np.linspace(0, (tr_cmp_stf.stats.npts-1)/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
+                plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'r', label='STF*GRF')
+                #t = np.linspace(t_diff, (grf_stf.stats.npts-1)/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
+                #plt.plot(t, grf_stf.data/abs(grf_stf.max())+grf_stf.stats.sac.gcarc, 'b', label='STF*GRF(cut)')
 
             else:
-                t = np.linspace(0, tr_cmp.stats.npts/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
+                t = np.linspace(0, (tr_cmp.stats.npts-1)/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
                 plt.plot(t, tr_cmp.data/maxi*scale+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
-                t = np.linspace(0, tr_real.stats.npts/tr_real.stats.sampling_rate, tr_real.stats.npts)
+                t = np.linspace(0, (tr_real.stats.npts-1)/tr_real.stats.sampling_rate, tr_real.stats.npts)
                 plt.plot(t, tr_real.data/maxi*scale/1.e9+grf.stats.sac.gcarc, 'black', label='REAL')
-                t = np.linspace(t_diff, grf.stats.npts/grf.stats.sampling_rate+t_diff, grf.stats.npts)
+                t = np.linspace(t_diff, (grf.stats.npts-1)/grf.stats.sampling_rate+t_diff, grf.stats.npts)
                 plt.plot(t, grf.data/maxi*scale+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
                 plt.vlines(tb + grf.stats.sac.a - grf.stats.sac.b, grf.stats.sac.gcarc-20, grf.stats.sac.gcarc+20, linestyle='dashed')
                  
-                t = np.linspace(0, tr_cmp_stf.stats.npts/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
-                plt.plot(t, tr_cmp_stf.data/maxi*scale+grf.stats.sac.gcarc, 'b', label='STF*GRF')
-                t = np.linspace(t_diff, grf_stf.stats.npts/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
-                plt.plot(t, grf_stf.data/maxi*scale+grf_stf.stats.sac.gcarc, 'r', label='STF*GRF(cut)')
+                t = np.linspace(0, (tr_cmp_stf.stats.npts-1)/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
+                plt.plot(t, tr_cmp_stf.data/maxi*scale+grf.stats.sac.gcarc, 'r', label='STF*GRF')
+                t = np.linspace(t_diff, (grf_stf.stats.npts-1)/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
+                plt.plot(t, grf_stf.data/maxi*scale+grf_stf.stats.sac.gcarc, 'b', label='STF*GRF(cut)')
         except Exception, e:
             print e
 
@@ -178,13 +181,13 @@ for add in grf_add:
         plt.ylabel('Epicentral Distance')
         plt.title('%s\nEpicentral Distance: %s' %(grf_name, grf.stats.sac.gcarc))
         plt.legend()
-        if not os.path.isdir(os.path.join(ev_add, 'figures', 'comparison')):
-            os.mkdir(os.path.join(ev_add, 'figures', 'comparison'))
-        plt.show()
+        #if not os.path.isdir(os.path.join(ev_add, 'figures', 'comparison')):
+        #    os.mkdir(os.path.join(ev_add, 'figures', 'comparison'))
         #plt.savefig(os.path.join(ev_add, 'figures', 'comparison', grf_name + '.png'))
+        plt.show()
         gca_arv.append([grf.stats.sac.gcarc, grf.stats.sac.a])
 
-plt.show()
+#plt.show()
 
 #--------------------------- TRASH --------------------------------
 #gca_arv.sort(key=lambda x: x[0])

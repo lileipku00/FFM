@@ -13,7 +13,7 @@
 #----------------Import required Modules (Python and Obspy)-------------
 #-----------------------------------------------------------------------
 
-# Required Python and Obspy modules will be imported in this part.
+# Required Python modules will be imported in this part.
 import os
 import shutil
 import subprocess
@@ -28,7 +28,7 @@ add_proc_ev = '/import/neptun-radler/hosseini-downloads/KASRA/FFM'
 add_runff = '/home/hosseini/FFINVERSION/AMPLITUDES/Programs/ffproc/FFsetup'
 # -------------------------------------------------------
 
-exit_flag = raw_input('Did you uncomment the Exit option in RunFFProcessing? (y/n)')
+exit_flag = raw_input('Did you uncomment the Exit option in RunFFProcessing? (y/n)\n')
 if exit_flag.upper() != 'Y':
     sys.exit('Please uncomment the flag at the very end of the file!')
 

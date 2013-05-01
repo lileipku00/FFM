@@ -13,14 +13,16 @@
 #----------------Import required Modules (Python and Obspy)-------------
 #-----------------------------------------------------------------------
 
-# Required Python and Obspy modules will be imported in this part.
+# Required Python modules will be imported in this part.
 import os
 import sys
 import subprocess
 
+
+#--------------------- create_source_inp -------------------------------
 def create_source_inp(indir):
     '''
-    Create source amd yspec.in files
+    Create source and yspec.in files
     '''
     fio_source = open(os.path.join(indir, 'in.yspec.source'))
     fi_source = fio_source.readlines()
@@ -39,6 +41,7 @@ def create_source_inp(indir):
         sta_info.append(fi_inv[_i].split(';')[4:12])
 
     sta_info.sort()
+    # XXX not sure about the functionality of del_index!
     del_index = []
     fio_sta_yspec = open(os.path.join(indir, 'sta_yspec'), 'w')
     for _i in xrange(len(sta_info)):
@@ -125,6 +128,8 @@ def create_source_inp(indir):
         fio_yspecin_new.write(fi_yspecin[_i])
     fio_yspecin_new.close()
 
+
+#--------------------- run_yspec ------------------------------------------
 def run_yspec(indir_submit, yspec_inp, num_proc, indir_output):
     '''
     run yspec

@@ -21,8 +21,8 @@ from obspy.imaging.beachball import Beach
 import os
 
 # ------------------- INPUT -----------------------------
-min_mag = 7.0
-max_mag = 10.0
+min_mag = 6.5
+max_mag = 6.9999
 plot_ev = True
 # -------------------------------------------------------
 
@@ -61,6 +61,6 @@ if plot_ev:
             ax.add_collection(b)
         except Exception, e:
             print evnt[0], e
+
+plt.title('%s Events found for:\n%s<=magnitude<=%s' %(enum, min_mag, max_mag))
 plt.show()
-
-

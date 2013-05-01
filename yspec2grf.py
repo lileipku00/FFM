@@ -25,6 +25,16 @@ import sys, os
 import shutil
 import subprocess
 
+'''
+sys.argv[1]: path to the newly calculated YSPEC in the gallery
+sys.argv[2]: number of processors 
+sys.argv[3]: source time
+sys.argv[4]: real station names file
+sys.argv[5]: phase name
+sys.argv[6]: data folder (where the results should move for FFM) 
+sys.argv[7]: travel time obtained from MATLAB code
+'''
+
 t = UTCDateTime(sys.argv[3])
 
 ########################################################################
@@ -44,68 +54,17 @@ def epi_dist(tr, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
         phase_exist = 'Y'
         tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, 
                 tr.stats.starttime + t_phase + ta)
+        # XXX O should be zero?
         O = 0
         A = t_phase
         B = tr_sliced.stats.starttime - tr.stats.starttime
+        # XXX Shouldn't be related to tr_sliced (end time)?
         E = tr_sliced.stats.endtime - tr.stats.starttime
         GCARC = tr.stats.sac.gcarc
     else:
         phase_exist = 'N'
         tr_sliced = 0 
         O = 0; A = 0; B = 0; E = 0; GCARC = 0
-
-    
-    
-    #self.dist = locations2degrees(lat1 = self.stats.sac.evla, 
-    #                long1 = self.stats.sac.evlo, 
-    #                lat2 = self.stats.sac.stla, 
-    #                long2 = self.stats.sac.stlo)
-    #epi_km = gps2DistAzimuth(tr.stats.sac.evla, tr.stats.sac.evlo,
-    #            tr.stats.sac.stla, tr.stats.sac.stlo)[0]
-    #dist = kilometer2degrees(epi_km/1000., radius = 6370.997)
-    #taup_process = subprocess.Popen(['taup_time', '-mod', model, '-time', '-h', 
-    #            str(tr.stats.sac.evdp), '-ph', req_phase, '-deg', str(dist)], stdout=subprocess.PIPE)
-    ##exit_taup_code = os.waitpid(taup_process.pid, 0)
-    #tt_raw = taup_process.communicate()[0]
-    #tt = tt_raw.split('\n')[0]
-    #print tt
-    #if tt:
-    #    phase_exist = 'Y'
-    #    t_phase = float(tt)
-    #    tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, 
-    #            tr.stats.starttime + t_phase + ta)
-    #    O = 0
-    #    A = t_phase
-    #    B = tr_sliced.stats.starttime - tr.stats.starttime
-    #    E = tr_sliced.stats.endtime - tr.stats.starttime
-    #    GCARC = dist
-    #else:
-    #    phase_exist = 'N'
-    #    tr_sliced = 0 
-    #    O = 0; A = 0; B = 0; E = 0; GCARC = 0
-    
-    #tt = getTravelTimes(dist, tr.stats.sac.evdp, model=model)
-    #t_phase = -12345.0
-    #for tt_item in tt:
-    #    if tt_item['phase_name'] == req_phase:
-    #        t_phase = tt_item['time']
-    #        phase_exist = 'Y'
-    #        break
-    #if t_phase != -12345.0:
-    #    #t_before = t_phase - tb
-    #    #t_after = t_phase + ta
-    #    tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, 
-    #            tr.stats.starttime + t_phase + ta)
-    #    O = 0
-    #    A = t_phase
-    #    B = tr_sliced.stats.starttime - tr.stats.starttime
-    #    E = tr_sliced.stats.endtime - tr.stats.starttime
-    #    GCARC = dist
-    #else:
-    #    phase_exist = 'N'
-    #    tr_sliced = 0 
-    #    O = 0; A = 0; B = 0; E = 0; GCARC = 0
-
     
     return (phase_exist, O, A, B, E, GCARC, tr_sliced)
 
@@ -137,6 +96,7 @@ def y2m(file, path):
 ########################################################################
 ############################# Main Program #############################
 ########################################################################
+
 print '\nConvert YSPEC output to SAC files!'
 path1 = sys.argv[1]
 if not os.path.isdir(os.path.join(path1, 'SAC')):
@@ -148,7 +108,7 @@ if not os.path.isdir(os.path.join(path1, 'SAC')):
         parallel_job(all_files[i], path1)
     parallel_results.finish()
 else:
-    print 'The directory is already there:'
+    print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC')
 
 
@@ -185,7 +145,7 @@ if not os.path.isdir(os.path.join(path1, 'SAC_realName')):
             tr_new.write(os.path.join(path1, 'SAC_realName', 'grf.' + sta_name[i][0] + '.' + \
                 sta_name[i][1] + '.' + sta_name[i][2] + '.x00.' + chan), format='SAC')
 else:
-    print 'The directory is already there:'
+    print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC_realName')
 
 print '\nStart filling in the arrival time and gcarc!' 
@@ -236,8 +196,63 @@ if req_phase in ['P', 'Pdiff']:
     for fi in phase_ls:
         shutil.move(fi, data_dest)
 elif req_phase in ['SH']:
-    print 'it just moves the BHE and BHN!'
+    print '\nit just moves the BHE and BHN!'
     phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHE'))
     phase_ls.append(glob.glob(os.path.join(path1, 'grf_cut', '*.BHN')))
     for fi in phase_ls:
         shutil.move(fi, data_dest)
+
+
+# TRASH:
+
+#self.dist = locations2degrees(lat1 = self.stats.sac.evla, 
+#                long1 = self.stats.sac.evlo, 
+#                lat2 = self.stats.sac.stla, 
+#                long2 = self.stats.sac.stlo)
+#epi_km = gps2DistAzimuth(tr.stats.sac.evla, tr.stats.sac.evlo,
+#            tr.stats.sac.stla, tr.stats.sac.stlo)[0]
+#dist = kilometer2degrees(epi_km/1000., radius = 6370.997)
+#taup_process = subprocess.Popen(['taup_time', '-mod', model, '-time', '-h', 
+#            str(tr.stats.sac.evdp), '-ph', req_phase, '-deg', str(dist)], stdout=subprocess.PIPE)
+##exit_taup_code = os.waitpid(taup_process.pid, 0)
+#tt_raw = taup_process.communicate()[0]
+#tt = tt_raw.split('\n')[0]
+#print tt
+#if tt:
+#    phase_exist = 'Y'
+#    t_phase = float(tt)
+#    tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, 
+#            tr.stats.starttime + t_phase + ta)
+#    O = 0
+#    A = t_phase
+#    B = tr_sliced.stats.starttime - tr.stats.starttime
+#    E = tr_sliced.stats.endtime - tr.stats.starttime
+#    GCARC = dist
+#else:
+#    phase_exist = 'N'
+#    tr_sliced = 0 
+#    O = 0; A = 0; B = 0; E = 0; GCARC = 0
+
+#tt = getTravelTimes(dist, tr.stats.sac.evdp, model=model)
+#t_phase = -12345.0
+#for tt_item in tt:
+#    if tt_item['phase_name'] == req_phase:
+#        t_phase = tt_item['time']
+#        phase_exist = 'Y'
+#        break
+#if t_phase != -12345.0:
+#    #t_before = t_phase - tb
+#    #t_after = t_phase + ta
+#    tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, 
+#            tr.stats.starttime + t_phase + ta)
+#    O = 0
+#    A = t_phase
+#    B = tr_sliced.stats.starttime - tr.stats.starttime
+#    E = tr_sliced.stats.endtime - tr.stats.starttime
+#    GCARC = dist
+#else:
+#    phase_exist = 'N'
+#    tr_sliced = 0 
+#    O = 0; A = 0; B = 0; E = 0; GCARC = 0
+
+
