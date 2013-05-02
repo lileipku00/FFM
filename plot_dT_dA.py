@@ -21,8 +21,8 @@ import sys
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.9
-plot_on = True
-write_on = False
+plot_on = False
+write_on = True
 plt_all_stas = False
 # -------------------------------------------------------
 
@@ -61,8 +61,8 @@ for _i in bands:
             passed_staev_tmp.append([lat, lon, xcorr, band_period[str(_i)]])
             all_dt_event = np.append(all_dt_event, dt)
             all_da_event = np.append(all_da_event, da)
-        all_dt_median = all_dt_event - np.median(all_dt_event)
-        all_da_median = all_da_event - np.median(all_da_event)
+        all_dt_median = all_dt_event #- np.median(all_dt_event)
+        all_da_median = all_da_event #- np.median(all_da_event)
         for k in range(len(all_dt_median)):
             passed_staev_tmp[k].insert(2, all_dt_median[k])
         for k in range(len(all_da_median)):

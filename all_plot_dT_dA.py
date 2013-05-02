@@ -70,5 +70,15 @@ for i in range(len(y_all)):
     y2_all = np.append(y2_all, y_all[i][1]*weight_all[i])
 
 plt.plot(x, (np.sum(y1_all)/sum(weight_all), 
-            np.sum(y2_all)/sum(weight_all)))
+            np.sum(y2_all)/sum(weight_all)), '--',
+            linewidth = 3)
+
+plt.ylabel('Time difference (dT)', fontsize = 'x-large', weight = 'bold')
+plt.xlabel('Dominant Period', fontsize = 'x-large', weight = 'bold')
+plt.xticks(fontsize = 'x-large', weight = 'bold')
+plt.yticks(fontsize = 'x-large', weight = 'bold')
+pltitle = 'All the processed events'
+pltitle += '\nbands: %s' %(bands)
+plt.title(pltitle, fontsize = 'x-large', weight = 'bold')
+
 plt.show()
