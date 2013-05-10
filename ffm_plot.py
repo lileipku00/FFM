@@ -148,8 +148,8 @@ for add in grf_add:
         grf_stf = convSTF(grf, STF_tr)
         try:
             if normalize:
-                t = np.linspace(0, (tr_cmp.stats.npts-1)/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
-                plt.plot(t, tr_cmp.data/abs(tr_cmp.max())+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
+                #t = np.linspace(0, (tr_cmp.stats.npts-1)/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
+                #plt.plot(t, tr_cmp.data/abs(tr_cmp.max())+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
                 t = np.linspace(0, (tr_real.stats.npts-1)/tr_real.stats.sampling_rate, tr_real.stats.npts)
                 plt.plot(t, tr_real.data/abs(tr_real.max())+grf.stats.sac.gcarc, 'black', label='REAL')
                 #t = np.linspace(t_diff, (grf.stats.npts-1)/grf.stats.sampling_rate+t_diff, grf.stats.npts)
@@ -158,6 +158,8 @@ for add in grf_add:
                  
                 t = np.linspace(0, (tr_cmp_stf.stats.npts-1)/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
                 plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'r', label='STF*GRF')
+                plt.xlim(0, 120)
+                plt.ylim(109.5, 111.5)
                 #t = np.linspace(t_diff, (grf_stf.stats.npts-1)/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
                 #plt.plot(t, grf_stf.data/abs(grf_stf.max())+grf_stf.stats.sac.gcarc, 'b', label='STF*GRF(cut)')
 

@@ -24,7 +24,7 @@ import sys
 # ------------------- INPUT -----------------------------
 processed_events_add = '/import/neptun-radler/hosseini-downloads/KASRA/FFM'
 band = 'band01'
-band = 'BB'
+#band = 'BB'
 xcorr_limit = 0.9
 # Number of divisions on gcarc for plotting reasons (find the middle point)
 divisions = 3

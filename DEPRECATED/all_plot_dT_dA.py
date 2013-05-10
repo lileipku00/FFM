@@ -23,10 +23,10 @@ import sys
 
 # ------------------- INPUT -----------------------------
 plt_all = False
+remote_dir = '/import/neptun-radler/hosseini-downloads/KASRA/FFM' 
 # -------------------------------------------------------
 
 bands = sys.argv[1]
-remote_dir = '/import/neptun-radler/hosseini-downloads/KASRA/FFM' 
 
 proc_ev_ls = glob.glob(os.path.join(remote_dir, '*.*.*.*'))
 print '%s processed events found!' %(len(proc_ev_ls))
