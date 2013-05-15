@@ -128,8 +128,8 @@ def elemdist(eventdata, lonang = 0.5, latang = 0.5 ):
 #main program
 import numpy as np
 import glob as gl
-band = '02'
-minxcor = 0.9
+band = '01'
+minxcor = 0.85
 lonang = 2
 latang = 1
 adrsdir = '/import/neptun-radler/hosseini-downloads/KASRA/FFM/'
@@ -206,7 +206,7 @@ map_x = []
 map_y = []
 map_dt = []
 for i in range(len(final_list)):
-    if -4<=final_list[i][2]<=4:
+    if -5<=final_list[i][2]<=5:
         x, y = m(final_list[i][1], final_list[i][0])
         map_x.append(x)
         map_y.append(y)

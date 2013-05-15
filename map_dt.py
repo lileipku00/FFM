@@ -23,9 +23,9 @@ import sys
 
 # ------------------- INPUT -----------------------------
 processed_events_add = '/import/neptun-radler/hosseini-downloads/KASRA/FFM'
-band = 'band01'
-#band = 'BB'
-xcorr_limit = 0.9
+#band = 'band05'
+band = 'BB'
+xcorr_limit = 0.85
 # Number of divisions on gcarc for plotting reasons (find the middle point)
 divisions = 3
 # -------------------------------------------------------
@@ -157,7 +157,7 @@ for inc in range(len(lon_inc)):
     gc_ymid_points_sub = []
     gc_dt_median_sub = []
     for i in range(len(gc_dtmid_points)):
-        if -4<=gc_dtmid_points[i]<=4:
+        if -5<=gc_dtmid_points[i]<=5:
             gc_dt_median_sub.append(gc_dtmid_points[i])
             gc_xmid_points_sub.append(gc_xmid_points[i])
             gc_ymid_points_sub.append(gc_ymid_points[i])
@@ -167,7 +167,7 @@ for inc in range(len(lon_inc)):
                 alpha=0.6, edgecolor='none', zorder=10)
 
     m.colorbar()
-    m.scatter(map_evlons, map_evlats, s=120, c='r', edgecolor='none', zorder=10, marker='*')
+    m.scatter(map_evlons, map_evlats, c='black', edgecolor='none', zorder=20, marker='.')
     plt.title('Dominant Period: %s\n#event-station pairs: %s' %(band_p, len(passed_staev)))
 plt.show()
 print '\n'

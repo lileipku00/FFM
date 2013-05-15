@@ -43,11 +43,11 @@ except: sys.exit('ERROR in the number of inputs!')
 
 if os.path.isfile(os.path.join(sys.argv[5], 'yspec.in')):
     if not filecmp.cmp(sys.argv[3], os.path.join(sys.argv[5], 'yspec.in')):
-        print '\nCurrent event was simulated before with different setting.'
-        print 'Removing the previous one and start the new simulation.'
-        print '\nRemoved directory:'
+        print '\nCurrent event was simulated before with different setting?'
+        #print 'Removing the previous one and start the new simulation.'
+        #print '\nRemoved directory:'
         print sys.argv[5]
-        shutil.rmtree(sys.argv[5])
+        #shutil.rmtree(sys.argv[5])
     else:
         print '\nThe simulation was done before and it is found in the archive:'
         print sys.argv[5]
