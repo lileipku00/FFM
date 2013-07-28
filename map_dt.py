@@ -22,9 +22,9 @@ import os
 import sys
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-radler/hosseini-downloads/KASRA/FFM'
-#band = 'band05'
-band = 'BB'
+processed_events_add = '/import/neptun-helles/hosseini/FFM'
+band = 'band01'
+#band = 'BB'
 xcorr_limit = 0.85
 # Number of divisions on gcarc for plotting reasons (find the middle point)
 divisions = 3

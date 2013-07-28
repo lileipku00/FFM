@@ -1,3 +1,9 @@
+band = '01'
+minxcor = 0.85
+lonang = 2
+latang = 1
+adrsdir = '/import/neptun-helles/hosseini/FFM/'
+
 #==================================================
 # Function GETEVLOC to get the location of the event
 #===================================================
@@ -128,11 +134,6 @@ def elemdist(eventdata, lonang = 0.5, latang = 0.5 ):
 #main program
 import numpy as np
 import glob as gl
-band = '01'
-minxcor = 0.85
-lonang = 2
-latang = 1
-adrsdir = '/import/neptun-radler/hosseini-downloads/KASRA/FFM/'
 event = gl.glob(adrsdir+'0*')
 eventdata = []
 elements = []
@@ -196,7 +197,7 @@ final_list[lat,lon,dt]
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 
-m = Basemap(projection='moll', lon_0=0, lat_0=0, resolution='c')
+m = Basemap(projection='moll', lon_0=-90, lat_0=0, resolution='c')
 m.drawcoastlines()
 m.drawparallels(np.arange(-90.,120.,30.))
 m.drawmeridians(np.arange(0.,420.,60.))

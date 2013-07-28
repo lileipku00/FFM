@@ -54,7 +54,8 @@ def epi_dist(tr, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
         phase_exist = 'Y'
         tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, 
                 tr.stats.starttime + t_phase + ta)
-        # XXX O should be zero?
+        # XXX O should be zero? for the moment it could be zero
+        # since YSPEC seismograms are all start at 0 but not for AXISEM
         O = 0
         A = t_phase
         B = tr_sliced.stats.starttime - tr.stats.starttime

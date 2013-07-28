@@ -24,7 +24,7 @@ import sys
 
 # ------------------- INPUT -----------------------------
 # Inputs:
-gallery_add = '/import/neptun-radler/hosseini-downloads/KASRA/FFM/YSPEC_SYN_GALLERY'
+gallery_add = '/import/neptun-helles/hosseini/FFM/YSPEC_SYN_GALLERY'
 psdata_add = '/import/neptun-radler/AmplitudeProjects/psdata/' 
 pdata_add = '/import/neptun-radler/AmplitudeProjects/pdata_processed/psdata_events/'
 # scale the waveforms when it plots them
@@ -39,7 +39,7 @@ tb = 20
 ta = 100
 # apply a bandpass filter to the data
 lfreq = 0.01
-hfreq = 0.5
+hfreq = 0.1
 # -------------------------------------------------------
 
 # Try to read the event address
@@ -53,6 +53,7 @@ def preprocess(tr, lfreq, hfreq):
     after this step the STF*tr will be calculated
     '''
     tr.filter('bandpass', freqmin=lfreq, freqmax=hfreq, corners=2, zerophase=True)
+    return tr
 
 #--------------------------- readSTF --------------------------------
 def readSTF(add_stf):
@@ -128,24 +129,28 @@ for add in grf_add:
     print '.',
     sys.stdout.flush()
     grf = read(add)[0]
+    print grf.stats.sac.gcarc
     if min_epi <= grf.stats.sac.gcarc <= max_epi:
-        plt.clf()
-        grf_name = add.split('/')[-1]
-        tr_cmp = read(os.path.join(gallery_add, ev_name, 'SAC_realName', grf_name))[0]
-        tr_cmp = tr_cmp.slice(grf.stats.starttime-tb, grf.stats.starttime+ta)
-        tr_real = read(os.path.join(psdata_add, ev_name, 'BH', 'dis.%s.%s.%s'
-                %(tr_cmp.stats.station, tr_cmp.stats.location, tr_cmp.stats.channel)))[0]
-        tr_real = tr_real.slice(tr_cmp.stats.starttime, tr_cmp.stats.endtime) 
-        t_diff = grf.stats.starttime - tr_cmp.stats.starttime
-        
-        # preprocessing all three waveforms 
-        preprocess(tr=grf, lfreq=lfreq, hfreq=hfreq)
-        preprocess(tr=tr_cmp, lfreq=lfreq, hfreq=hfreq)
-        preprocess(tr=tr_real, lfreq=lfreq, hfreq=hfreq)
-        
-        # STF*GRF
-        tr_cmp_stf = convSTF(tr_cmp, STF_tr)
-        grf_stf = convSTF(grf, STF_tr)
+        try:
+            plt.clf()
+            grf_name = add.split('/')[-1]
+            tr_cmp = read(os.path.join(gallery_add, ev_name, 'SAC_realName', grf_name))[0]
+            tr_cmp = tr_cmp.slice(grf.stats.starttime-tb, grf.stats.starttime+ta)
+            tr_real = read(os.path.join(psdata_add, ev_name, 'BH', 'dis.%s.%s.%s'
+                    %(tr_cmp.stats.station, tr_cmp.stats.location, tr_cmp.stats.channel)))[0]
+            tr_real = tr_real.slice(tr_cmp.stats.starttime, tr_cmp.stats.endtime) 
+            t_diff = grf.stats.starttime - tr_cmp.stats.starttime
+            
+            # preprocessing all three waveforms 
+            grf = preprocess(tr=grf, lfreq=lfreq, hfreq=hfreq)
+            tr_cmp = preprocess(tr=tr_cmp, lfreq=lfreq, hfreq=hfreq)
+            tr_real = preprocess(tr=tr_real, lfreq=lfreq, hfreq=hfreq)
+            
+            # STF*GRF
+            tr_cmp_stf = convSTF(tr_cmp, STF_tr)
+            grf_stf = convSTF(grf, STF_tr)
+        except Exception, e:
+            print e
         try:
             if normalize:
                 #t = np.linspace(0, (tr_cmp.stats.npts-1)/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
@@ -158,8 +163,8 @@ for add in grf_add:
                  
                 t = np.linspace(0, (tr_cmp_stf.stats.npts-1)/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
                 plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'r', label='STF*GRF')
-                plt.xlim(0, 120)
-                plt.ylim(109.5, 111.5)
+                #plt.xlim(0, 120)
+                #plt.ylim(109.5, 111.5)
                 #t = np.linspace(t_diff, (grf_stf.stats.npts-1)/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
                 #plt.plot(t, grf_stf.data/abs(grf_stf.max())+grf_stf.stats.sac.gcarc, 'b', label='STF*GRF(cut)')
 
@@ -183,9 +188,9 @@ for add in grf_add:
         plt.ylabel('Epicentral Distance')
         plt.title('%s\nEpicentral Distance: %s' %(grf_name, grf.stats.sac.gcarc))
         plt.legend()
-        #if not os.path.isdir(os.path.join(ev_add, 'figures', 'comparison')):
-        #    os.mkdir(os.path.join(ev_add, 'figures', 'comparison'))
-        #plt.savefig(os.path.join(ev_add, 'figures', 'comparison', grf_name + '.png'))
+        if not os.path.isdir(os.path.join('.', 'comparison_figs')):
+            os.mkdir(os.path.join('.', 'comparison_figs'))
+        plt.savefig(os.path.join('.', 'comparison_figs', grf_name + '.png'))
         plt.show()
         gca_arv.append([grf.stats.sac.gcarc, grf.stats.sac.a])
 

@@ -22,9 +22,9 @@ import sys
 # ------------------- INPUT -----------------------------
 req_phase = 'Pdiff'
 req_solver = 'yspec'
-req_processes = '64'
+req_processes = '16'
 add_event_info = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/results'
-add_proc_ev = '/import/neptun-radler/hosseini-downloads/KASRA/FFM'
+add_proc_ev = '/import/neptun-helles/hosseini/FFM'
 add_runff = '/home/hosseini/FFINVERSION/AMPLITUDES/Programs/ffproc/FFsetup'
 # -------------------------------------------------------
 

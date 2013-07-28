@@ -24,34 +24,37 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.85
-remote_dir = '/import/neptun-radler/hosseini-downloads/KASRA/FFM' 
+remote_dir = '/import/neptun-helles/hosseini/FFM' 
 # -------------------------------------------------------
 
 # ------------------- nr_dt -----------------------------
-def nr_dt(t_shift_array, max_ts=14, width=1, num_bands=1, enum=0, leg='default'):
+def nr_dt(t_shift_array, max_ts=20, width=0.5, num_bands=1, enum=0, leg='default'):
     '''
     histogram plot for all measured traveltime anomalies
     '''
     bins = np.arange(-int(max_ts), int(max_ts), width)
+    #for i in range(len(t_shift_array)):
+    #    t_shift_array[i] = round(t_shift_array[i])
     digit = np.digitize(t_shift_array, bins)
     digit_list = digit.tolist()
+    for i in range(len(digit_list)):
+        digit_list[i] = digit_list[i]-1
     digit_count = {}
     for i in range(0, len(bins)):
         digit_count[str(i)] = digit_list.count(i)
-    
     dic_color = {'0': 'blue', '1': 'deepskyblue', '2': 'green', 
                     '3': 'darkorange', '4': 'brown', 
                     '5': 'olive', '6': 'tan', '7': 'darkviolet'}
     for i in range(0, len(bins)):
         if i==0:
-            plt.bar(left = bins[i]-width*(0.25-enum*0.5/num_bands), 
-                    width = width/2./num_bands, height = digit_count[str(i)], 
+            plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
+                    width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
                     color = dic_color[str(enum)], 
                     edgecolor = dic_color[str(enum)], 
                     label=leg)
         else:
-            plt.bar(left = bins[i]-width*(0.25-enum*0.5/num_bands), 
-                    width = width/2./num_bands, height = digit_count[str(i)], 
+            plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
+                    width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
                     color = dic_color[str(enum)], 
                     edgecolor = dic_color[str(enum)]) 
     
@@ -86,9 +89,10 @@ for i in range(len(bands)):
                 t_shift_array.append(all_passed_staev[j][0][k][2])
     nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's')
 
+plt.xlim(-3.75, 3.75)
 plt.xlabel('Time lag / s', fontsize = 'xx-large', weight = 'bold')
 plt.ylabel('nr of data', fontsize = 'xx-large', weight = 'bold')
-plt.xticks(fontsize = 'xx-large', weight = 'bold')
+plt.xticks(np.arange(-3.0, 4.0, 1.0), fontsize = 'xx-large', weight = 'bold')
 plt.yticks(fontsize = 'xx-large', weight = 'bold')
 #plt.title(fontsize = 'xx-large', weight = 'bold')
 plt.legend()

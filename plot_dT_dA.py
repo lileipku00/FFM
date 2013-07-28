@@ -27,7 +27,7 @@ all_processed = True
 update_all = False
 plot_scatter = False
 plot_mean = True
-remote_dir = '/import/neptun-radler/hosseini-downloads/KASRA/FFM' 
+remote_dir = '/import/neptun-helles/hosseini/FFM' 
 # -------------------------------------------------------
 
 intro = 20*'-'
