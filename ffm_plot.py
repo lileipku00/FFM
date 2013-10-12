@@ -32,14 +32,14 @@ scale = 100
 # normalize the data
 normalize = True
 # minimum and maximum epicentral distances for plotting
-min_epi = 90.0
+min_epi = 100.0
 max_epi = 180.0
 # time to cut the waveforms (tb: time before, ta: time after)
-tb = 20
-ta = 100
+tb = 40
+ta = 200
 # apply a bandpass filter to the data
 lfreq = 0.01
-hfreq = 0.1
+hfreq = 1.0
 # -------------------------------------------------------
 
 # Try to read the event address
@@ -148,21 +148,24 @@ for add in grf_add:
             
             # STF*GRF
             tr_cmp_stf = convSTF(tr_cmp, STF_tr)
+            # After convolution with STF, it should be sliced again!?
+            tr_cmp_stf = tr_cmp_stf.slice(grf.stats.starttime-tb, grf.stats.starttime+ta)
             grf_stf = convSTF(grf, STF_tr)
         except Exception, e:
             print e
         try:
             if normalize:
                 #t = np.linspace(0, (tr_cmp.stats.npts-1)/tr_cmp.stats.sampling_rate, tr_cmp.stats.npts)
-                #plt.plot(t, tr_cmp.data/abs(tr_cmp.max())+grf.stats.sac.gcarc, 'b', linestyle='dashed', label='GRF')
+                #plt.plot(t, tr_cmp.data/abs(tr_cmp.max())+grf.stats.sac.gcarc, 'b', label='GRF', lw=2)
                 t = np.linspace(0, (tr_real.stats.npts-1)/tr_real.stats.sampling_rate, tr_real.stats.npts)
-                plt.plot(t, tr_real.data/abs(tr_real.max())+grf.stats.sac.gcarc, 'black', label='REAL')
+                plt.plot(t, tr_real.data/abs(tr_real.max())+grf.stats.sac.gcarc, 'black', label='REAL', lw=2)
                 #t = np.linspace(t_diff, (grf.stats.npts-1)/grf.stats.sampling_rate+t_diff, grf.stats.npts)
-                #plt.plot(t, grf.data/abs(grf.max())+grf.stats.sac.gcarc, 'r', linestyle='dashed', label='GRF(cut)')
-                plt.vlines(tb + grf.stats.sac.a - grf.stats.sac.b, grf.stats.sac.gcarc-1, grf.stats.sac.gcarc+1, linestyle='dashed')
+                #plt.plot(t, grf.data/abs(grf.max())+grf.stats.sac.gcarc, 'b', label='GRF(cut)')
+                plt.vlines(tb + grf.stats.sac.a - grf.stats.sac.b, grf.stats.sac.gcarc-2, grf.stats.sac.gcarc+2, linestyle='dashed', lw=2)
                  
                 t = np.linspace(0, (tr_cmp_stf.stats.npts-1)/tr_cmp_stf.stats.sampling_rate, tr_cmp_stf.stats.npts)
-                plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'r', label='STF*GRF')
+                plt.plot(t, tr_cmp_stf.data/abs(tr_cmp_stf.max())+grf.stats.sac.gcarc, 'r', label='STF*GRF', lw=2)
+                
                 #plt.xlim(0, 120)
                 #plt.ylim(109.5, 111.5)
                 #t = np.linspace(t_diff, (grf_stf.stats.npts-1)/grf_stf.stats.sampling_rate+t_diff, grf_stf.stats.npts)
@@ -183,9 +186,13 @@ for add in grf_add:
                 plt.plot(t, grf_stf.data/maxi*scale+grf_stf.stats.sac.gcarc, 'b', label='STF*GRF(cut)')
         except Exception, e:
             print e
-
-        plt.xlabel('Time (sec)') 
-        plt.ylabel('Epicentral Distance')
+        
+        #plt.xlim(0, 150)
+        #plt.ylim(109.5, 111.5)
+        plt.xlabel('Time (sec)', size='xx-large', weight='bold') 
+        plt.ylabel('Epicentral Distance', size='xx-large', weight='bold')
+        plt.xticks(size = 'large', weight = 'bold')
+        plt.yticks(size = 'large', weight = 'bold')
         plt.title('%s\nEpicentral Distance: %s' %(grf_name, grf.stats.sac.gcarc))
         plt.legend()
         if not os.path.isdir(os.path.join('.', 'comparison_figs')):

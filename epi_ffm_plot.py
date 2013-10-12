@@ -56,12 +56,12 @@ phase = 'P'
 tb = 10
 ta = 100
 # apply a bandpass filter to the data
-lfreq = 0.01
-hfreq = 0.2
+lfreq = 0.001
+hfreq = 0.04
 # minimum xcorrelation factor
-min_xcorr = 0.85
+min_xcorr = 0.92
 # enum_max (how many waveforms should be considered)
-enum_max = 100
+enum_max = 30
 # -------------------------------------------------------
 # Try to read the event address
 try: 
@@ -192,14 +192,14 @@ for i in range(len(sta_read)):
             mfi_tr = mfi_tr.slice(ev_time + phase_time - tb, ev_time + phase_time + ta)
              
             np_xcorr, fac_xcorr = xcorr(mfi_tr.data, real_tr.data, int(15.*real_tr.stats.sampling_rate))
-            
+            print fac_xcorr 
             sys.stdout.flush()
-            #if fac_xcorr < min_xcorr: 
-            #    print '.',
-            #    continue
-            #if np_xcorr == int(5.*real_tr.stats.sampling_rate): 
-            #    print '.',
-            #    continue
+            if fac_xcorr < min_xcorr: 
+                print '.',
+                continue
+            if np_xcorr > int(1.*real_tr.stats.sampling_rate): 
+                print '.',
+                continue
             
             print '\n******************'
             print sta_name
@@ -242,20 +242,23 @@ for i in range(len(tr_all)):
     t_diff = tr_all[i][3]
     np_xcorr = tr_all[i][4]
     t = np.linspace(0, (real_tr.stats.npts-1)/real_tr.stats.sampling_rate, real_tr.stats.npts)
-    if i == 0: plt.plot(t, real_tr.data/abs(real_tr.max()) + enum, 'black', label='REAL')
-    else: plt.plot(t, real_tr.data/abs(real_tr.max()) + enum, 'black')
+    if i == 0: plt.plot(t, real_tr.data/abs(real_tr.max()) + enum, 'black', lw=2, label='Real')
+    else: plt.plot(t, real_tr.data/abs(real_tr.max()) + enum, 'black', lw=2)
     #plt.vlines(tb, grf_tr.stats.sac.gcarc-1, grf_tr.stats.sac.gcarc+1, linestyle='dashed')
-    t = np.linspace(t_diff-np_xcorr/mfi_tr.stats.sampling_rate, t_diff - np_xcorr/mfi_tr.stats.sampling_rate + 
-                        (mfi_tr.stats.npts-1)/mfi_tr.stats.sampling_rate, mfi_tr.stats.npts)
+    #t = np.linspace(t_diff-np_xcorr/mfi_tr.stats.sampling_rate, t_diff - np_xcorr/mfi_tr.stats.sampling_rate + 
+    #                    (mfi_tr.stats.npts-1)/mfi_tr.stats.sampling_rate, mfi_tr.stats.npts)
+    t = np.linspace(t_diff, t_diff + (mfi_tr.stats.npts-1)/mfi_tr.stats.sampling_rate, mfi_tr.stats.npts)
     #t = np.linspace(t_diff, t_diff + (mfi_tr.stats.npts-1)/mfi_tr.stats.sampling_rate, mfi_tr.stats.npts)
     #t = np.linspace(t_diff+calc_dt, t_diff + calc_dt + (mfi_tr.stats.npts-1)/mfi_tr.stats.sampling_rate, mfi_tr.stats.npts)
-    if i == 0: plt.plot(t, mfi_tr.data/abs(mfi_tr.max())+enum, 'r', label='MFI')
-    else: plt.plot(t, mfi_tr.data/abs(mfi_tr.max())+enum, 'r')
+    if i == 0: plt.plot(t, mfi_tr.data/abs(mfi_tr.max())+enum, 'r', lw=2, label='Simulated')
+    else: plt.plot(t, mfi_tr.data/abs(mfi_tr.max())+enum, 'r', lw=2)
 
 
-plt.xlabel('Time (sec)') 
-plt.ylabel('Epicentral Distance')
-plt.ylim(ymax=enum+2)
-plt.legend()
+plt.xticks(size='large', weight='bold')
+plt.yticks(size='large', weight='bold')
+plt.xlabel('Time (sec)', size = 'xx-large', weight = 'bold') 
+plt.ylabel('Traces', size = 'xx-large', weight = 'bold')
+plt.ylim(ymax=enum+5)
+plt.legend(prop = {'size': 20})
 
 plt.show()

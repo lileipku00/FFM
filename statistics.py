@@ -23,40 +23,75 @@ import sys
 import util_ffproc as uf 
 
 # ------------------- INPUT -----------------------------
-xcorr_limit = 0.85
-remote_dir = '/import/neptun-helles/hosseini/FFM' 
+# It should be changed to -100 (large negative number) or so for nr_cc!!
+xcorr_limit = 0.8
+remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5'
+#remote_dir = '/import/neptun-helles/hosseini/FFM'
+nr_cc = False 
+line_plot = False
 # -------------------------------------------------------
 
+# ------------------- round_to --------------------------
+def round_to(n, precission):
+    correction = 0.5 if n >= 0 else -0.5
+    return int(n/precission+correction)*precission
+
 # ------------------- nr_dt -----------------------------
-def nr_dt(t_shift_array, max_ts=20, width=0.5, num_bands=1, enum=0, leg='default'):
+def nr_dt(t_shift_array, max_ts=5., width=0.5, num_bands=1, 
+                enum=0, leg='default', line_plot=False):
     '''
     histogram plot for all measured traveltime anomalies
+    EXAMPLES:
+    1) For nr_cc:
+    max_ts=2., width=0.1
+    max_ts=2., width=0.01
+    2) For nr_dt:
+    max_ts=30., width=0.1
     '''
-    bins = np.arange(-int(max_ts), int(max_ts), width)
-    #for i in range(len(t_shift_array)):
-    #    t_shift_array[i] = round(t_shift_array[i])
+    bins = np.arange(-int(max_ts), int(max_ts)+width, width)
+    if not nr_cc:
+        for i in range(len(t_shift_array)):
+            t_shift_array[i] = round_to(t_shift_array[i], width)
     digit = np.digitize(t_shift_array, bins)
     digit_list = digit.tolist()
-    for i in range(len(digit_list)):
-        digit_list[i] = digit_list[i]-1
+    
+    if not nr_cc:
+        for i in range(len(digit_list)):
+            digit_list[i] = digit_list[i]-1
+    # |----------|----------|
+    # -1         0          1
+    #     ---->     <----
+    else:
+        for i in range(len(digit_list)):
+            if t_shift_array[i] >= 0.:
+                digit_list[i] = digit_list[i]-1
+
     digit_count = {}
     for i in range(0, len(bins)):
         digit_count[str(i)] = digit_list.count(i)
     dic_color = {'0': 'blue', '1': 'deepskyblue', '2': 'green', 
                     '3': 'darkorange', '4': 'brown', 
                     '5': 'olive', '6': 'tan', '7': 'darkviolet'}
+    x_line = []
+    y_line = []
     for i in range(0, len(bins)):
-        if i==0:
-            plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
-                    width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
-                    color = dic_color[str(enum)], 
-                    edgecolor = dic_color[str(enum)], 
-                    label=leg)
+        if not line_plot:
+            if i==0:
+                plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
+                        width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
+                        color = dic_color[str(enum)], 
+                        edgecolor = dic_color[str(enum)], 
+                        label=leg)
+            else:
+                plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
+                        width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
+                        color = dic_color[str(enum)], 
+                        edgecolor = dic_color[str(enum)])
         else:
-            plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
-                    width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
-                    color = dic_color[str(enum)], 
-                    edgecolor = dic_color[str(enum)]) 
+            x_line.append(bins[i])
+            y_line.append(digit_count[str(i)])
+    if line_plot:
+        plt.plot(x_line[9:-10], y_line[9:-10], lw=3.0, label=leg, color=dic_color[str(enum)])
     
 # --------------------------------------------------------------
 # ------------------- MAIN PROGRAM -----------------------------
@@ -86,14 +121,38 @@ for i in range(len(bands)):
         # one band that we are working with which is accessible by [0]
         for k in range(len(all_passed_staev[j][0])):
             if not all_passed_staev[j][0][k] == []:
-                t_shift_array.append(all_passed_staev[j][0][k][2])
-    nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's')
+                if not nr_cc:
+                    t_shift_array.append(all_passed_staev[j][0][k][2])
+                else:
+                    # keep the name as t_shift_array to not change the whole script!
+                    # However, if nr_cc is selected, it will be number of stations vs 
+                    # cross correlation coefficient
+                    t_shift_array.append(all_passed_staev[j][0][k][4])
+    print len(t_shift_array)
+    nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's', 
+                line_plot=line_plot)
 
-plt.xlim(-3.75, 3.75)
-plt.xlabel('Time lag / s', fontsize = 'xx-large', weight = 'bold')
-plt.ylabel('nr of data', fontsize = 'xx-large', weight = 'bold')
-plt.xticks(np.arange(-3.0, 4.0, 1.0), fontsize = 'xx-large', weight = 'bold')
-plt.yticks(fontsize = 'xx-large', weight = 'bold')
+if nr_cc:
+    #Pdiff
+    #plt.vlines(x=0.8, ymin=0.0, ymax=80000, lw=2, linestyle='--')
+    #plt.xlim(-1.1, 1.1)
+    #plt.ylim(ymax=80000)
+    plt.vlines(x=0.8, ymin=0.0, ymax=215000, lw=2, linestyle='--')
+    plt.xlim(-1.1, 1.1)
+    plt.ylim(ymax=215000)
+    plt.xlabel('xcorrelation factor', fontsize = 'xx-large', weight = 'bold')
+    plt.ylabel('nr of data', fontsize = 'xx-large', weight = 'bold')
+    plt.xticks(np.arange(-1.0, 1.1, 0.2), fontsize = 'xx-large', weight = 'bold')
+    plt.yticks(fontsize = 'xx-large', weight = 'bold')
+    #plt.title(fontsize = 'xx-large', weight = 'bold')
+    plt.legend(loc=2, prop={'size':22})
+    plt.show()
+else:
+    plt.xlim(-3.75, 3.75)
+    plt.xlabel('Time lag / s', fontsize = 'xx-large', weight = 'bold')
+    plt.ylabel('nr of data', fontsize = 'xx-large', weight = 'bold')
+    plt.xticks(np.arange(-3.0, 4.0, 1.0), fontsize = 'xx-large', weight = 'bold')
+    plt.yticks(fontsize = 'xx-large', weight = 'bold')
 #plt.title(fontsize = 'xx-large', weight = 'bold')
-plt.legend()
-plt.show()
+    plt.legend(prop={'size':22})
+    plt.show()

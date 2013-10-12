@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# ATTENTION: This script is the modified version of P and Pdiff ray_density
+# The main goal is to compare these two phases togehter!
+
 #-------------------------------------------------------------------
 #   Filename:  dt_density.py
 #   Purpose:   plot dt calculated with FFM in a density map
@@ -17,6 +20,7 @@
 import glob
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from mpl_toolkits.basemap import Basemap
 import multiprocessing
 import numpy as np
@@ -30,17 +34,21 @@ import time
 processed_events_add = '/import/neptun-helles/hosseini/FFM'
 band = 'band08'
 #band = 'BB'
-xcorr_limit = 0.85
+xcorr_limit = 0.8
 gr_x = 720
 npts = 1800
-parts = 16
+parts = 80
+#gr_x = 180
+#npts = 1800
+#parts = 80
 projection = 'robin'
-ray_coverage = True
-read_only = False
+ray_coverage = False
+read_only = True
 # -------------------------------------------------------
 
-if raw_input('Removed the items in grid_tmp dir?(y/n)').lower() == 'n':
-    sys.exit()
+if not read_only:
+    if raw_input('Removed the items in grid_tmp dir?(y/n)').lower() == 'n':
+        sys.exit()
 
 #############################################################
 ####################### FUNCTIONS ###########################
@@ -86,20 +94,27 @@ def ray_density(lat1, lon1, lat2, lon2,
     Create the DATA array which contains the
     info for ray density
     '''
-    mymap = Basemap(projection=projection, lon_0=0, lat_0=0)
+    exist_flag = False
+    mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
     #npts=max(gr_x, gr_y)
     # grd[2]: longitude
     # grd[3]: latitude
     grd = mymap.makegrid(gr_x, gr_y, returnxy=True)
+    data = np.zeros([len(grd[2]), len(grd[3])])
 
     lons, lats = mymap.gcpoints(lon1, lat1, lon2, lat2, npts)
     dist = locations2degrees(lat1, lon1, lat2, lon2)
-    bap = int((dist - 97.0)*npts/dist)/2
+    if 80.0<=dist<=85.0:
+        print dist,
+        exist_flag = True
+    else:
+        print 'None',
+        return data, exist_flag
+    bap = int((dist - 70.0)*npts/dist)/2
     midlon = len(lons)/2
     midlat = len(lats)/2
     lons = lons[midlon-bap:midlon+1+bap]
     lats = lats[midlat-bap:midlat+1+bap]
-    data = np.zeros([len(grd[2]), len(grd[3])])
     for i in range(len(lons)):
         xi, yi = point_finder(lons[i], lats[i], grd)
         # first one is latitude and second longitude
@@ -110,24 +125,27 @@ def ray_density(lat1, lon1, lat2, lon2,
             print e
     if ray_coverage:
         data[np.nonzero(data)] = 1
-    return data
+    return data, exist_flag
 
 # -----------calculator--------------------
 def calculator(DATA, passed_staev, gr_x, npts, start, end, 
                     projection='robin', ray_coverage=False): 
-    mymap = Basemap(projection=projection, lon_0=0, lat_0=0)
+    mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
     nonzero = []
     gr_y = gr_x
     grd = mymap.makegrid(gr_x, gr_y, returnxy=True)
     for i in range(start, end):
         print i,
         sys.stdout.flush()
-        data = ray_density(passed_staev[i][4], passed_staev[i][5],
+        data, exist_flag = ray_density(passed_staev[i][4], passed_staev[i][5],
                         passed_staev[i][0], passed_staev[i][1], 
                         dt=passed_staev[i][2], 
                         gr_x=gr_x, gr_y=gr_y, npts=npts, 
                         projection=projection, 
                         ray_coverage=ray_coverage)
+        if not i == end-1:
+            if not exist_flag: 
+                continue
         if DATA is None: DATA = data.copy()
         else: DATA += data
         nonzero_tmp = np.nonzero(data)
@@ -228,10 +246,32 @@ if not read_only:
         1.0: [0.0, 0.0, 0.1]},
         "seismic_tomography") # Blueish black
 
-    mymap = Basemap(projection=projection, lon_0=0, lat_0=0)
+    tomo_colormap_2 = _get_colormap({
+        0.00000: [0.12941, 0.40000, 0.67451],  
+        0.11110: [0.12941, 0.40000, 0.67451],
+        0.11110: [0.26275, 0.57647, 0.76471],
+        0.22220: [0.26275, 0.57647, 0.76471],
+        0.22220: [0.57255, 0.77255, 0.87059],
+        0.33330: [0.57255, 0.77255, 0.87059],
+        0.33330: [0.81961, 0.89804, 0.94118],
+        0.44440: [0.81961, 0.89804, 0.94118],
+        0.44440: [0.96863, 0.96863, 0.96863],
+        0.55560: [1.0, 1.0, 1.0],
+        0.55560: [1.0, 1.0, 1.0],
+        0.66670: [0.99216, 0.85882, 0.78039],
+        0.66670: [0.95686, 0.64706, 0.50980],
+        0.77780: [0.95686, 0.64706, 0.50980],
+        0.77780: [0.83922, 0.37647, 0.30196],
+        0.88890: [0.83922, 0.37647, 0.30196],
+        0.88890: [0.69804, 0.09412, 0.16863],
+        1.00000: [0.69804, 0.09412, 0.16863]},
+        "seismic_tomography_2")
+
+    
+    mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
     #mymap.drawmapboundary(zorder=100)
     mymap.drawcoastlines()
-    #passed_staev = passed_staev[0:1]
+    #passed_staev = passed_staev[0:100]
     start = 0
     end = len(passed_staev)
     step = (end - start) / parts + 1
@@ -259,6 +299,7 @@ if not read_only:
             else:
                 pp_flag = False
 
+
 # A pretty colormap for use in tomography.
 tomo_colormap = _get_colormap({
     0.0: [0.1, 0.0, 0.0], # Reddish black
@@ -272,9 +313,30 @@ tomo_colormap = _get_colormap({
     1.0: [0.0, 0.0, 0.1]},
     "seismic_tomography") # Blueish black
 
-mymap = Basemap(projection=projection, lon_0=0, lat_0=0)
-#mymap.drawmapboundary(zorder=100)
-mymap.drawcoastlines()
+tomo_colormap_2 = _get_colormap({
+        0.00000: [0.12941, 0.40000, 0.67451],  
+        0.11110: [0.12941, 0.40000, 0.67451],
+        0.11110: [0.26275, 0.57647, 0.76471],
+        0.22220: [0.26275, 0.57647, 0.76471],
+        0.22220: [0.57255, 0.77255, 0.87059],
+        0.33330: [0.57255, 0.77255, 0.87059],
+        0.33330: [0.81961, 0.89804, 0.94118],
+        0.44440: [0.81961, 0.89804, 0.94118],
+        0.44440: [0.96863, 0.96863, 0.96863],
+        0.55560: [1.0, 1.0, 1.0],
+        0.55560: [1.0, 1.0, 1.0],
+        0.66670: [0.99216, 0.85882, 0.78039],
+        0.66670: [0.95686, 0.64706, 0.50980],
+        0.77780: [0.95686, 0.64706, 0.50980],
+        0.77780: [0.83922, 0.37647, 0.30196],
+        0.88890: [0.83922, 0.37647, 0.30196],
+        0.88890: [0.69804, 0.09412, 0.16863],
+        1.00000: [0.69804, 0.09412, 0.16863]},
+        "seismic_tomography_2")
+
+mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+#mymap.drawmapboundary(fill_color = 'black', color = 'red')
+mymap.drawcoastlines(color='black')
 
 data_ls = glob.glob('grid_tmp/DATA-*')
 nonzero_ls = glob.glob('grid_tmp/nonzero-*')
@@ -312,24 +374,71 @@ print '\nplotting...'
 #mymap.contourf(grd[2], grd[3], DATA)
 vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
 if not ray_coverage:
-    mymap.pcolormesh(grd[2], grd[3], -1*DATA, cmap=tomo_colormap, vmin=-1*vmin, vmax=vmin)
+    mymap.pcolormesh(grd[2], grd[3], DATA, cmap=tomo_colormap_2, vmin=-1*vmin/100., vmax=vmin/100.)
 else:
-    mymap.pcolormesh(grd[2], grd[3], DATA, vmax=100)
+    import matplotlib.cm as cm
+    mymap.pcolormesh(grd[2], grd[3], DATA, cmap=cm.gray, vmax=10)
 #plt.hexbin(grd[2], grd[3], DATA)
-plt.colorbar()
+cbar = plt.colorbar(orientation='horizontal')
+cbar.ax.tick_params(labelsize=12) 
 plt.show()
 
 import scipy.ndimage as ndimage
-DATA_filt = ndimage.gaussian_filter(DATA, sigma=10.0, order=0)
-mymap = Basemap(projection=projection, lon_0=0, lat_0=0)
+DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+DATA_filt = DATA
+mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
 mymap.drawcoastlines()
-mymap.pcolormesh(grd[2], grd[3], -1*DATA_filt, cmap=tomo_colormap, vmin=-1*vmin/10., vmax=vmin/10.)
-plt.colorbar()
+mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.0380677, vmax=0.0380677)
+#mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.02537848, vmax=0.02537848)
+#plt.colorbar()
 #plt.colorbar(orientation="horizontal")
+cbar = plt.colorbar(orientation='horizontal')
+cbar.ax.tick_params(labelsize=12)
+#cbar.ax.set_xticklabels(['-1.5%', '-1.2%', '-0.9%', '-0.6%', '0.3%', '0%', '0.3%', '0.6%', '0.9%', '1.2%', '1.5%'])
+cbar.ax.set_xticklabels(['-1.5%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.5%'])
 plt.show()
 
 
+# import scipy.ndimage as ndimage
+# DATA_filt = ndimage.gaussian_filter(DATA, sigma=10.0, order=0)
+# mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+# mymap.drawcoastlines()
+# mymap.pcolormesh(grd[2], grd[3], -1*DATA_filt, cmap=tomo_colormap, vmin=-1*vmin/100., vmax=vmin/100.)
+# plt.colorbar()
+# #plt.colorbar(orientation="horizontal")
+# plt.show()
+# 
+# import scipy.ndimage as ndimage
+# DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+# mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+# mymap.drawcoastlines()
+# mymap.pcolormesh(grd[2], grd[3], -1*DATA_filt, cmap=tomo_colormap, vmin=-1*vmin/100., vmax=vmin/100.)
+# plt.colorbar()
+# #plt.colorbar(orientation="horizontal")
+# plt.show()
 
+# import scipy.ndimage as ndimage
+# DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+# mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+# mymap.drawcoastlines()
+# mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-1*vmin/100., vmax=vmin/100.)
+# plt.colorbar()
+# #plt.colorbar(orientation="horizontal")
+# plt.show()
+# 
+import scipy.ndimage as ndimage
+from matplotlib.colors import LogNorm
+DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+#DATA_filt = DATA
+mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+mymap.drawcoastlines(color='white')
+
+#mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=cm.gray, vmin=0, vmax=1.0)
+mymap.pcolormesh(grd[2], grd[3], DATA_filt, norm=LogNorm(vmin=0.1, vmax=285))
+#plt.colorbar()
+plt.colorbar(orientation="horizontal")
+cbar.ax.tick_params(labelsize=12) 
+plt.show()
 
 ########start = 0
 ########end = len(passed_staev)
@@ -372,3 +481,45 @@ plt.show()
 ########            break
 ########        else:
 ########            pp_flag = False
+
+### tomo_colormap_2 = _get_colormap({
+###     0.00000: [0.12941, 0.40000, 0.67451],  
+###     0.11110: [0.12941, 0.40000, 0.67451],
+###     0.11110: [0.26275, 0.57647, 0.76471],
+###     0.22220: [0.26275, 0.57647, 0.76471],
+###     0.22220: [0.57255, 0.77255, 0.87059],
+###     0.33330: [0.57255, 0.77255, 0.87059],
+###     0.33330: [0.81961, 0.89804, 0.94118],
+###     0.44440: [0.81961, 0.89804, 0.94118],
+###     0.44440: [0.96863, 0.96863, 0.96863],
+###     0.55560: [0.96863, 0.96863, 0.96863],
+###     0.55560: [0.99216, 0.85882, 0.78039],
+###     0.66670: [0.99216, 0.85882, 0.78039],
+###     0.66670: [0.95686, 0.64706, 0.50980],
+###     0.77780: [0.95686, 0.64706, 0.50980],
+###     0.77780: [0.83922, 0.37647, 0.30196],
+###     0.88890: [0.83922, 0.37647, 0.30196],
+###     0.88890: [0.69804, 0.09412, 0.16863],
+###     1.00000: [0.69804, 0.09412, 0.16863]},
+###     "seismic_tomography_2")
+
+#tomo_colormap_2 = _get_colormap({
+#    0.00000: [0.69804, 0.09412, 0.16863],  
+#    0.11110: [0.69804, 0.09412, 0.16863],
+#    0.11110: [0.83922, 0.37647, 0.30196],
+#    0.22220: [0.83922, 0.37647, 0.30196],
+#    0.22220: [0.95686, 0.64706, 0.50980],
+#    0.33330: [0.95686, 0.64706, 0.50980],
+#    0.33330: [0.99216, 0.85882, 0.78039],
+#    0.44440: [0.99216, 0.85882, 0.78039],
+#    0.44440: [0.96863, 0.96863, 0.96863],
+#    0.55560: [0.96863, 0.96863, 0.96863],
+#    0.55560: [0.81961, 0.89804, 0.94118],
+#    0.66670: [0.81961, 0.89804, 0.94118],
+#    0.66670: [0.57255, 0.77255, 0.87059],
+#    0.77780: [0.57255, 0.77255, 0.87059],
+#    0.77780: [0.26275, 0.57647, 0.76471],
+#    0.88890: [0.26275, 0.57647, 0.76471],
+#    0.88890: [0.12941, 0.40000, 0.67451],
+#    1.00000: [0.12941, 0.40000, 0.67451]},
+#    "seismic_tomography_2")

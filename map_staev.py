@@ -9,6 +9,8 @@
 #   License:   GPLv3
 #-------------------------------------------------------------------
 
+# WARNING: something is strange in finding the duplicated stations for plotting!
+
 #-----------------------------------------------------------------------
 #----------------Import required Modules (Python and Obspy)-------------
 #-----------------------------------------------------------------------
@@ -23,12 +25,11 @@ import os
 import sys
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM'
+processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1'
+#processed_events_add = '/import/neptun-helles/hosseini/FFM'
 band = 'band01'
 #band = 'BB'
-xcorr_limit = 0.85
-# Number of divisions on gcarc for plotting reasons (find the middle point)
-divisions = 3
+xcorr_limit = 0.8
 # -------------------------------------------------------
 
 band_period = {
@@ -83,10 +84,15 @@ print '%s events failed!' %(failed)
 print '%s station-event pairs found...' %(len(stations_info))
 print '------------------------'
 
+#stations_info_trim = []
+#for item in stations_info:
+#    if item not in stations_info_trim:
+#        stations_info_trim.append(item)
+
 stations_info_trim = []
 for item in stations_info:
-    if item not in stations_info_trim:
-        stations_info_trim.append(item)
+    stations_info_trim.append(item)
+
 
 print '\nPlotting...'
 
