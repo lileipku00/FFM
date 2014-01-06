@@ -113,6 +113,7 @@ def convSTF(tr, STF_tr, grp):
     """
     # grp-1 is used here since group starts at 1!
     conv_tr = tr.copy()
+    print 'WARNING: you are using resample!!!!'
     STF_tr[grp-1].resample(tr.stats.sampling_rate)
     conv_tr.data = np.convolve(STF_tr[grp-1].data, tr.data)
     return conv_tr
@@ -186,6 +187,7 @@ for i in range(len(sta_read)):
             # preprocessing all three waveforms 
             mfi_tr = preprocess(tr=mfi_tr, lfreq=lfreq, hfreq=hfreq)
             real_tr = preprocess(tr=real_tr, lfreq=lfreq, hfreq=hfreq)
+            print 'WARNING: you are using resample!!!'
             real_tr.resample(mfi_tr.stats.sampling_rate) 
             
             real_tr = real_tr.slice(ev_time + phase_time - tb, ev_time + phase_time + ta)

@@ -86,6 +86,7 @@ def convSTF(tr, STF_tr):
     STF*Trace
     """
     conv_tr = tr.copy()
+    print 'WARNING: you are using resample!!!'
     STF_tr.resample(tr.stats.sampling_rate)
     conv_tr.data = np.convolve(STF_tr.data, tr.data)
     return conv_tr
