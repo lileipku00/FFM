@@ -24,11 +24,11 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 # It should be changed to -100 (large negative number) or so for nr_cc!!
-xcorr_limit = 0.8
-remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5'
+xcorr_limit = -100
+remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
 #remote_dir = '/import/neptun-helles/hosseini/FFM'
-nr_cc = False 
-line_plot = False
+nr_cc = True 
+line_plot = True
 # -------------------------------------------------------
 
 # ------------------- round_to --------------------------
@@ -37,7 +37,7 @@ def round_to(n, precission):
     return int(n/precission+correction)*precission
 
 # ------------------- nr_dt -----------------------------
-def nr_dt(t_shift_array, max_ts=5., width=0.5, num_bands=1, 
+def nr_dt(t_shift_array, max_ts=2., width=0.01, num_bands=1, 
                 enum=0, leg='default', line_plot=False):
     '''
     histogram plot for all measured traveltime anomalies
@@ -139,7 +139,7 @@ if nr_cc:
     #plt.ylim(ymax=80000)
     plt.vlines(x=0.8, ymin=0.0, ymax=215000, lw=2, linestyle='--')
     plt.xlim(-1.1, 1.1)
-    plt.ylim(ymax=215000)
+    plt.ylim(ymax=10000)
     plt.xlabel('xcorrelation factor', fontsize = 'xx-large', weight = 'bold')
     plt.ylabel('nr of data', fontsize = 'xx-large', weight = 'bold')
     plt.xticks(np.arange(-1.0, 1.1, 0.2), fontsize = 'xx-large', weight = 'bold')

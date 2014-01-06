@@ -28,13 +28,13 @@ import sys
 import time
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1'
+processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
 band = 'band08'
 #band = 'BB'
 xcorr_limit = 0.8
 gr_x = 720
 npts = 1800
-parts = 80
+parts = 1
 #gr_x = 18
 #npts = 180
 #parts = 1
@@ -49,7 +49,7 @@ long_0 = 180
 if raw_input('Moved the items in MAP_* dir?(y/n)').lower() == 'n':
     sys.exit()
 if not read_only:
-    if raw_input('Removed the items in MAP_OUTPUT dir?(y/n)').lower() == 'n':
+    if raw_input('Removed the items in MAP_OUTPUT_TEST dir?(y/n)').lower() == 'n':
         sys.exit()
 
 #############################################################
@@ -147,10 +147,10 @@ def calculator(DATA, passed_staev, gr_x, npts, start, end,
         nonzero_tmp = np.nonzero(data)
         for j in range(len(nonzero_tmp[0])):
             nonzero.append((nonzero_tmp[0][j], nonzero_tmp[1][j]))
-    fi = open('MAP_OUTPUT/DATA-' + str(start), 'w')
+    fi = open('MAP_OUTPUT_TEST/DATA-' + str(start), 'w')
     pickle.dump(DATA, fi)
     fi.close()
-    fi = open('MAP_OUTPUT/nonzero-' + str(start), 'w')
+    fi = open('MAP_OUTPUT_TEST/nonzero-' + str(start), 'w')
     pickle.dump(nonzero, fi)
     fi.close()
 
@@ -182,7 +182,8 @@ if not read_only:
     evlats = []
     evlons = []
     print '\nERRORS:'
-    for i in range(len(proc_ev_ls)):
+    #for i in range(len(proc_ev_ls)):
+    for i in range(0, 4):
         evnt = proc_ev_ls[i]
         all_dt_event = np.array([])
         passed_staev_tmp = []
@@ -334,8 +335,8 @@ mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
 #mymap.drawmapboundary(fill_color = 'black', color = 'red')
 mymap.drawcoastlines(color='black')
 
-data_ls = glob.glob('MAP_OUTPUT/DATA-*')
-nonzero_ls = glob.glob('MAP_OUTPUT/nonzero-*')
+data_ls = glob.glob('MAP_OUTPUT_TEST/DATA-*')
+nonzero_ls = glob.glob('MAP_OUTPUT_TEST/nonzero-*')
 DATA = None
 nonzero = None
 print '-------------'
@@ -404,12 +405,12 @@ plt.show()
 
 # ==================== PICKLING THE REQUIRED INFORMATION ===============================
 print "Pickling the final result..."
-os.mkdir(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add)))
-data_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'DATA'), 'w')
-projec_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'projection'), 'w')
-grd_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'grd'), 'w')
-tomo_color_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'tomo_colormap_2'), 'w')
-long_0_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'long_0'), 'w')
+os.mkdir(os.path.join('.', 'TEST_MAP_' + os.path.basename(processed_events_add)))
+data_fi = open(os.path.join('.', 'TEST_MAP_' + os.path.basename(processed_events_add), 'DATA'), 'w')
+projec_fi = open(os.path.join('.', 'TEST_MAP_' + os.path.basename(processed_events_add), 'projection'), 'w')
+grd_fi = open(os.path.join('.', 'TEST_MAP_' + os.path.basename(processed_events_add), 'grd'), 'w')
+tomo_color_fi = open(os.path.join('.', 'TEST_MAP_' + os.path.basename(processed_events_add), 'tomo_colormap_2'), 'w')
+long_0_fi = open(os.path.join('.', 'TEST_MAP_' + os.path.basename(processed_events_add), 'long_0'), 'w')
 
 pickle.dump(DATA, data_fi)
 pickle.dump(projection, projec_fi)
