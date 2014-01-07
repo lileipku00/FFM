@@ -128,7 +128,7 @@ def allffplotmean(per, all_dt_mean):
     plt.show()
 
 #----------------------meanall_ffplot---------------------------------
-def meanall_ffplot(per, all_dt_mean, all_a_mean):
+def meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single):
     '''
     Plot mean dT and observed A for all the stations in all events
     '''
@@ -152,6 +152,33 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean):
         meanall_dt.append(tt/weight_tt)
         #meanall_a.append(aa/weight_aa)
     
+    ### A TEST
+    plt.ion()
+    plt.figure()
+    plt.subplot(1,1,1)
+    all_tt_mean = []
+    all_tt_std = []
+    for i in range(len(all_tt_single)):
+        all_tt_mean.append(np.mean(all_tt_single[i]))
+        all_tt_std.append(np.std(all_tt_single[i]))
+     
+    plt.xlabel('Dominant Period', fontsize = 'x-large', weight = 'bold')
+    x = [2.7, 3.7, 5.3, 7.5, 10.6, 15.0, 21.2, 30.0]
+    plt.xlim(xmin=0.0)
+    #plt.ylim(ymin=0.25, ymax=0.65)
+    plt.vlines(x, 0.0, 1.6)
+    # !!! change these according to your case!
+    plt.xlim(1.7, 31)
+    plt.ylim(0.0, 1.6)
+    plt.xticks(x, fontsize = 'x-large', weight = 'bold')
+    plt.yticks(fontsize = 'x-large', weight = 'bold')
+    plt.plot(per, all_tt_mean, lw=3, color='black', label='Mean')
+    plt.plot(per, all_tt_std, lw=3, color='red', label='STD')
+    plt.legend(loc=5)
+    plt.show()
+    ### FINISH A TEST
+    
+    plt.figure() 
     plt.subplot(1, 1, 1)
     plt.ylabel('Time difference (dT)', fontsize = 'x-large', weight = 'bold')
     plt.xlabel('Dominant Period', fontsize = 'x-large', weight = 'bold')
@@ -159,6 +186,8 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean):
     plt.xlim(xmin=0.0)
     #plt.ylim(ymin=0.25, ymax=0.65)
     plt.vlines(x, 0.0, 0.65)
+    plt.ylim(0.0, 0.65)
+    plt.xlim(1.7, 31.)
     plt.xticks(x, fontsize = 'x-large', weight = 'bold')
     plt.yticks(fontsize = 'x-large', weight = 'bold')
     #pltitle = evname
@@ -183,7 +212,7 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean):
     #plt.xticks(fontsize = 'x-large', weight = 'bold')
     #plt.yticks(fontsize = 'x-large', weight = 'bold')
     #plt.plot(per, meanall_a, linewidth=3)
-
+    
     plt.show()
 #----------------------writer---------------------------------
 def writer(passed_staev, bands):

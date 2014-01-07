@@ -15,6 +15,7 @@
 
 # Required Python modules will be imported in this part.
 import glob
+import numpy as np
 import os
 import shutil
 import sys
@@ -23,10 +24,14 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.8
+remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
+
 all_processed = True
 update_all = True
-plot_scatter = False
+
 plot_mean = True
+plot_scatter = False
+
 plot_sta = True
 all_stations = True
 just_selected_events = False
@@ -95,8 +100,6 @@ list_events = [\
 '0718.2009.302.a',
 '0731.2009.148.a',
 '0756.2009.189.a']
-
-remote_dir = '/import/neptun-helles/hosseini/FFM'
 # -------------------------------------------------------
 
 intro = 20*'-'
@@ -145,6 +148,19 @@ else:
         all_a_mean = []
         all_lat = []
         all_lon = []
+        
+        ##### A TEST!
+        # Try to collect all single measurements (after removing the median)
+        # in one big list! This makes it possible for further analysis
+        all_tt_single = []
+        for i in range(len(all_passed_staev[0])):
+            all_tt_single_tmp = []
+            for j in range(len(all_passed_staev)):
+                for k in range(len(all_passed_staev[j][i])):
+                    all_tt_single_tmp.append(all_passed_staev[j][i][k][2])
+            all_tt_single.append(all_tt_single_tmp)
+        #### FINISH A TEST
+        
         for i in range(len(all_passed_staev)):
             per, dt_mean, a_mean, flag = uf.stamean(all_passed_staev[i])
             if flag:
@@ -154,12 +170,14 @@ else:
                     all_lat.append(sta[0])
                     all_lon.append(sta[1])
         #uf.allffplotmean(per, all_dt_mean)
-        uf.meanall_ffplot(per, all_dt_mean, all_a_mean)
+        uf.meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single)
 
     if plot_sta:
         import matplotlib.pyplot as plt
         from mpl_toolkits.basemap import Basemap
         import numpy as np
+        plt.figure()
+        plt.subplot(1,1,1)
         m = Basemap(projection='cyl', lon_0=0.0, lat_0=0.0, resolution='c')
         m.drawcoastlines()
         m.fillcontinents()
@@ -169,3 +187,5 @@ else:
         x, y = m(all_lon, all_lat)
         m.scatter(x, y, c='red', edgecolor='none', zorder=20, marker='v', s=40)
         plt.show()
+
+raw_input('Press enter to quit!')

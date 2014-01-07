@@ -24,51 +24,51 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 # It should be changed to -100 (large negative number) or so for nr_cc!!
-xcorr_limit = -100
+xcorr_limit = 0.8
+#xcorr_limit = -100
 remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
 #remote_dir = '/import/neptun-helles/hosseini/FFM'
-nr_cc = True 
-line_plot = True
+nr_cc = False
+line_plot = False
 # -------------------------------------------------------
 
 # ------------------- round_to --------------------------
 def round_to(n, precission):
     correction = 0.5 if n >= 0 else -0.5
-    return int(n/precission+correction)*precission
+    rounded = int(n/precission+correction)*precission
+    rounded2 = round(rounded, 6)
+    return rounded2
 
 # ------------------- nr_dt -----------------------------
-def nr_dt(t_shift_array, max_ts=2., width=0.01, num_bands=1, 
+def nr_dt(t_shift_array, max_ts=30., width=0.5, num_bands=1, 
                 enum=0, leg='default', line_plot=False):
     '''
     histogram plot for all measured traveltime anomalies
     EXAMPLES:
     1) For nr_cc:
     max_ts=2., width=0.1
-    max_ts=2., width=0.01
+    * max_ts=2., width=0.01
     2) For nr_dt:
     max_ts=30., width=0.1
+    max_ts=30., width=0.5
     '''
     bins = np.arange(-int(max_ts), int(max_ts)+width, width)
-    if not nr_cc:
-        for i in range(len(t_shift_array)):
-            t_shift_array[i] = round_to(t_shift_array[i], width)
+    
+    for i in range(len(bins)): 
+        bins[i] = round(bins[i], 6)
+    for i in range(len(t_shift_array)):
+        t_shift_array[i] = round_to(t_shift_array[i], width)
+    
     digit = np.digitize(t_shift_array, bins)
     digit_list = digit.tolist()
     
-    if not nr_cc:
-        for i in range(len(digit_list)):
-            digit_list[i] = digit_list[i]-1
-    # |----------|----------|
-    # -1         0          1
-    #     ---->     <----
-    else:
-        for i in range(len(digit_list)):
-            if t_shift_array[i] >= 0.:
-                digit_list[i] = digit_list[i]-1
-
+    for i in range(len(digit_list)):
+        digit_list[i] = digit_list[i]-1
+    
     digit_count = {}
     for i in range(0, len(bins)):
         digit_count[str(i)] = digit_list.count(i)
+    
     dic_color = {'0': 'blue', '1': 'deepskyblue', '2': 'green', 
                     '3': 'darkorange', '4': 'brown', 
                     '5': 'olive', '6': 'tan', '7': 'darkviolet'}
@@ -92,6 +92,17 @@ def nr_dt(t_shift_array, max_ts=2., width=0.01, num_bands=1,
             y_line.append(digit_count[str(i)])
     if line_plot:
         plt.plot(x_line[9:-10], y_line[9:-10], lw=3.0, label=leg, color=dic_color[str(enum)])
+
+    #TRASH:
+    #if not nr_cc:
+    #if not nr_cc:
+    ### |----------|----------|
+    ### -1         0          1
+    ###     ---->     <----
+    ###else:
+    ###    for i in range(len(digit_list)):
+    ###        if t_shift_array[i] >= 0.:
+    ###            digit_list[i] = digit_list[i]-1
     
 # --------------------------------------------------------------
 # ------------------- MAIN PROGRAM -----------------------------
@@ -146,6 +157,7 @@ if nr_cc:
     plt.yticks(fontsize = 'xx-large', weight = 'bold')
     #plt.title(fontsize = 'xx-large', weight = 'bold')
     plt.legend(loc=2, prop={'size':22})
+    plt.xlim(0.01, 1.01)
     plt.show()
 else:
     plt.xlim(-3.75, 3.75)
