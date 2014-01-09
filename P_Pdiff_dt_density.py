@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#### XXXX IT HAS A READER: BE CAREFUL ABOUT XCORR AND MEDIAN!!!!
+
 # ATTENTION: This script is the modified version of P and Pdiff ray_density
 # The main goal is to compare these two phases togehter!
 

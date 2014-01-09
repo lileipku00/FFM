@@ -120,7 +120,8 @@ for i in range(len(bands)):
     for j in range(len(proc_ev_ls)):
         # [bands[i]] is defined like this because reader gets
         # list as an input
-        all_staev = uf.reader(proc_ev_ls[j], [bands[i]], band_period)
+        # !!!! just_high_cc is added to make sure that median is removed correctly!
+        all_staev = uf.reader(proc_ev_ls[j], [bands[i]], band_period, just_high_cc=0.8)
         if all_staev == []: continue
         passed_staev = uf.filters(all_staev, [bands[i]], xcorr_limit=xcorr_limit)
         if passed_staev[0] == []: continue

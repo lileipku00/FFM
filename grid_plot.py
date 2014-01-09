@@ -1,3 +1,6 @@
+
+#### XXXX IT HAS A READER: BE CAREFUL ABOUT XCORR AND MEDIAN!!!!
+
 band = '01'
 minxcor = 0.85
 lonang = 2

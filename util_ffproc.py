@@ -2,8 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+#### XXXX IT HAS A READER: BE CAREFUL ABOUT XCORR AND MEDIAN!!!!
+
 #----------------------reader---------------------------------
-def reader(evadd, bands, band_period, all_stations=True):
+def reader(evadd, bands, band_period, all_stations=True, just_high_cc=False):
     '''
     This function reads the ffproc.ampstt.band....
     '''
@@ -15,6 +17,7 @@ def reader(evadd, bands, band_period, all_stations=True):
             passed_staev_tmp = []
             all_dt_event = np.array([])
             all_da_event = np.array([])
+            all_dt_high_cc = []
             fio_dt = open(os.path.join(evadd, 'outfiles', 
                             'ffproc.ampstt.' + str_i), 'r')
             f_dt = fio_dt.readlines()
@@ -32,7 +35,14 @@ def reader(evadd, bands, band_period, all_stations=True):
                 passed_staev_tmp.append([lat, lon, xcorr, band_period[str(i)], sta_id])
                 all_dt_event = np.append(all_dt_event, dt)
                 all_da_event = np.append(all_da_event, da/1.e9)
-            all_dt_median = all_dt_event - np.median(all_dt_event)
+                if just_high_cc:
+                    if xcorr >= just_high_cc:
+                        all_dt_high_cc.append(dt)
+            if just_high_cc and len(all_dt_high_cc) > 10:
+                np_median = np.median(all_dt_high_cc)
+            else:
+                np_median = np.median(all_dt_event)
+            all_dt_median = all_dt_event - np_median
             all_da_median = all_da_event - np.median(all_da_event)
             for k in range(len(all_dt_median)):
                 passed_staev_tmp[k].insert(2, all_dt_median[k])
@@ -166,7 +176,7 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single):
     x = [2.7, 3.7, 5.3, 7.5, 10.6, 15.0, 21.2, 30.0]
     plt.xlim(xmin=0.0)
     #plt.ylim(ymin=0.25, ymax=0.65)
-    plt.vlines(x, 0.0, 1.6)
+    plt.vlines(x, 0.0, 1.6, linestyle='--')
     # !!! change these according to your case!
     plt.xlim(1.7, 31)
     plt.ylim(0.0, 1.6)
@@ -174,7 +184,7 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single):
     plt.yticks(fontsize = 'x-large', weight = 'bold')
     plt.plot(per, all_tt_mean, lw=3, color='black', label='Mean')
     plt.plot(per, all_tt_std, lw=3, color='red', label='STD')
-    plt.legend(loc=5)
+    plt.legend(loc=5, prop={'size': 32})
     plt.show()
     ### FINISH A TEST
     
@@ -185,7 +195,7 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single):
     x = [2.7, 3.7, 5.3, 7.5, 10.6, 15.0, 21.2, 30.0]
     plt.xlim(xmin=0.0)
     #plt.ylim(ymin=0.25, ymax=0.65)
-    plt.vlines(x, 0.0, 0.65)
+    plt.vlines(x, 0.0, 0.65, linestyle='--')
     plt.ylim(0.0, 0.65)
     plt.xlim(1.7, 31.)
     plt.xticks(x, fontsize = 'x-large', weight = 'bold')

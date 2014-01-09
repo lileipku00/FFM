@@ -25,6 +25,7 @@ import util_ffproc as uf
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.8
 remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
+just_high_cc = 0.8
 
 all_processed = True
 update_all = True
@@ -115,7 +116,8 @@ if not all_processed:
     evadd = sys.argv[2]
     evname = evadd.split('/')[-1]
     if not evname: evname = evadd.split('/')[-2]
-    all_staev = uf.reader(evadd, bands, band_period, all_stations=all_stations)
+    all_staev = uf.reader(evadd, bands, band_period, all_stations=all_stations, 
+                                just_high_cc = just_high_cc)
     passed_staev = uf.filters(all_staev, bands, xcorr_limit=xcorr_limit,
                                                 all_stations=all_stations)
     if plot_scatter: uf.ffpscatter(passed_staev)
@@ -135,7 +137,8 @@ else:
         os.mkdir(os.path.join('.', 'statistics'))
     all_passed_staev = []
     for i in range(len(proc_ev_ls)):
-        all_staev = uf.reader(proc_ev_ls[i], bands, band_period, all_stations=all_stations)
+        all_staev = uf.reader(proc_ev_ls[i], bands, band_period, all_stations=all_stations,
+                                just_high_cc = just_high_cc)
         if all_staev == []: continue
         passed_staev = uf.filters(all_staev, bands, xcorr_limit=xcorr_limit, 
                                                 all_stations=all_stations)

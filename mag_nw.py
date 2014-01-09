@@ -3,7 +3,7 @@
 
 #-------------------------------------------------------------------
 #   Filename:  mag_nw.py
-#   Purpose:   number of waveforms vs magnitude
+#   Purpose:   number of src-rcv pairs vs magnitude
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -80,16 +80,35 @@ for i in range(len(bands)):
                 mag_dic[k][0] += nw_all[j]
                 mag_dic[k][1] += 1
                 break
+    plt.ion()
+    plt.figure()
+    plt.subplot(2,1,2)
     for j in mag_dic:
         if mag_dic[j][1] > 0.1:
             plt.bar(left=float(j)-0.05, width=0.1, height=mag_dic[j][0]/mag_dic[j][1])
             #plt.bar(left=float(j)-0.05, width=0.1, height=mag_dic[j][0])
+    plt.xlabel('Magnitude', fontsize = 'xx-large', weight = 'bold')
+    plt.ylabel('#waveforms/#events', fontsize = 'xx-large', weight = 'bold')
+    plt.xticks(fontsize = 'xx-large', weight = 'bold')
+    plt.yticks(fontsize = 'xx-large', weight = 'bold')
+    plt.legend()
+    plt.show()
 
-#plt.xlim(-5.5, 5.5)
-plt.xlabel('Magnitude', fontsize = 'xx-large', weight = 'bold')
-plt.ylabel('#waveforms/#events', fontsize = 'xx-large', weight = 'bold')
-plt.xticks(fontsize = 'xx-large', weight = 'bold')
-plt.yticks(fontsize = 'xx-large', weight = 'bold')
-#plt.title(fontsize = 'xx-large', weight = 'bold')
-plt.legend()
-plt.show()
+    #plt.figure()
+    plt.subplot(2,1,1)
+    for j in mag_dic:
+        if mag_dic[j][1] > 0.1:
+            plt.bar(left=float(j)-0.05, width=0.1, height=mag_dic[j][0])
+    plt.xlabel('Magnitude', fontsize = 'xx-large', weight = 'bold')
+    plt.ylabel('#waveforms', fontsize = 'xx-large', weight = 'bold')
+    plt.xticks(fontsize = 'xx-large', weight = 'bold')
+    plt.yticks(fontsize = 'xx-large', weight = 'bold')
+    plt.legend()
+    plt.show()
+
+print "Number of all events used: %s" %(len(mag_all))
+nr_all_sta = 0
+for i in range(len(nw_all)):
+    nr_all_sta += nw_all[i]
+print "Number of all stations used: %s" %(nr_all_sta)
+raw_input('Please press enter to exit the program!')

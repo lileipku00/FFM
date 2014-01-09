@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#### XXXX IT HAS A READER: BE CAREFUL ABOUT XCORR AND MEDIAN!!!!
+
 #-------------------------------------------------------------------
 #   Filename:  ffm_to_ascii.py
 #   Purpose:   Converts the FFM to ascii format (Ludwig)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------
-#   Filename:  dt_density.py
+#   Filename:  Pdiff_dt_density.py
 #   Purpose:   plot dt calculated with FFM in a density map
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
@@ -28,8 +28,8 @@ import sys
 import time
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1'
-band = 'band08'
+processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
+band = 'band01'
 #band = 'BB'
 xcorr_limit = 0.8
 gr_x = 720
@@ -39,7 +39,7 @@ parts = 80
 #npts = 180
 #parts = 1
 projection = 'robin'
-ray_coverage = False
+ray_coverage = True
 read_only = False
 
 # MAP projection
@@ -184,7 +184,8 @@ if not read_only:
     print '\nERRORS:'
     for i in range(len(proc_ev_ls)):
         evnt = proc_ev_ls[i]
-        all_dt_event = np.array([])
+        all_dt_high_cc = []
+        all_dt_event = []
         passed_staev_tmp = []
         try:
             fio_dt = open(os.path.join(evnt, 'outfiles', 'ffproc.ampstt.' + band), 'r')
@@ -203,10 +204,15 @@ if not read_only:
                 dt = float(info_dt[5])
                 lat = float(info_dt[6])
                 lon = float(info_dt[7])
+                all_dt_event.append(dt)
                 if xcorr >= xcorr_limit:
                     passed_staev_tmp.append([lat, lon, xcorr, float(evlat), float(evlon), i])
-                    all_dt_event = np.append(all_dt_event, dt)
-            all_dt_median = all_dt_event - np.median(all_dt_event)
+                    all_dt_high_cc.append(dt)
+            if len(all_dt_high_cc) > 10:
+                np_median = np.median(all_dt_high_cc)
+            else:
+                np_median = np.median(all_dt_event)
+            all_dt_median = all_dt_high_cc - np_median
             for k in range(len(all_dt_median)):
                 passed_staev_tmp[k].insert(2, all_dt_median[k])
                 passed_staev.append(passed_staev_tmp[k])
@@ -379,28 +385,45 @@ cbar = plt.colorbar(orientation='horizontal')
 cbar.ax.tick_params(labelsize=12) 
 plt.show()
 
+# Clean 1.0% (dT)
 import scipy.ndimage as ndimage
-DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+DATA_filt = ndimage.gaussian_filter(DATA, sigma=10.0, order=0)
 #DATA_filt = DATA
 mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
 mymap.drawcoastlines()
-
-# this one is for CMB, based on your notes and corresponding to 1.5%
-#mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.0380677, vmax=0.0380677)
 # this one is for CMB, based on your notes and corresponding to 1.%
 mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.02537847, vmax=0.02537847)
-
-#plt.colorbar()
-#plt.colorbar(orientation="horizontal")
 cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=12)
-
-#cbar.ax.set_xticklabels(['-1.5%', '-1.2%', '-0.9%', '-0.6%', '0.3%', '0%', '0.3%', '0.6%', '0.9%', '1.2%', '1.5%'])
-#cbar.ax.set_xticklabels(['-1.5%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.5%'])
+cbar.ax.tick_params(labelsize=16)
 cbar.ax.set_xticklabels(['-1.0%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.0%'])
-
 plt.show()
 
+# Clean 1.5%
+import scipy.ndimage as ndimage
+DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+DATA_filt = DATA
+mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
+mymap.drawcoastlines()
+# this one is for CMB, based on your notes and corresponding to 1.5%
+mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.0380677, vmax=0.0380677)
+cbar = plt.colorbar(orientation='horizontal')
+cbar.ax.tick_params(labelsize=16)
+cbar.ax.set_xticklabels(['-1.5%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.5%'])
+plt.show()
+
+# FOR RAY COVERAGE
+import scipy.ndimage as ndimage
+from matplotlib.colors import LogNorm
+DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+DATA_filt = DATA
+mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
+mymap.drawcoastlines(color='white')
+vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
+mymap.pcolormesh(grd[2], grd[3], DATA_filt, norm=LogNorm(vmin=0.1, vmax=330))
+cbar = plt.colorbar(orientation='horizontal')
+cbar.ax.tick_params(labelsize=16)
+#cbar.ax.set_xticklabels(['0.1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '285'])
+plt.show()
 
 # ==================== PICKLING THE REQUIRED INFORMATION ===============================
 print "Pickling the final result..."

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#### XXXX IT HAS A READER: BE CAREFUL ABOUT XCORR AND MEDIAN!!!!
+
 #-------------------------------------------------------------------
 #   Filename:  nxcorr_epidist.py
 #   Purpose:   plot xcorr vs epicentral distance of FF measurements
@@ -25,18 +27,20 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 # It should be changed to -100 (large negative number) or so for nr_cc!!
-xcorr_limit = 0.9
+xcorr_limit = 0.8
 #remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec'
-remote_dir = '/import/neptun-helles/hosseini/FFM'
+remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
 # -------------------------------------------------------
 
 # ------------------- round_to --------------------------
 def round_to(n, precission):
     correction = 0.5 if n >= 0 else -0.5
-    return int(n/precission+correction)*precission
+    rounded = int(n/precission+correction)*precission
+    rounded2 = round(rounded, 6)
+    return rounded2
 
 #----------------------reader---------------------------------
-def reader(evadd, bands, band_period, all_stations=True):
+def reader(evadd, bands, band_period, all_stations=True, just_high_cc=False):
     '''
     This function reads the ffproc.ampstt.band....
     '''
@@ -48,6 +52,7 @@ def reader(evadd, bands, band_period, all_stations=True):
             passed_staev_tmp = []
             all_dt_event = np.array([])
             all_da_event = np.array([])
+            all_dt_high_cc = []
             fio_dt = open(os.path.join(evadd, 'outfiles', 
                             'ffproc.ampstt.' + str_i), 'r')
             f_dt = fio_dt.readlines()
@@ -66,7 +71,14 @@ def reader(evadd, bands, band_period, all_stations=True):
                 passed_staev_tmp.append([lat, lon, xcorr, band_period[str(i)], epi, sta_id])
                 all_dt_event = np.append(all_dt_event, dt)
                 all_da_event = np.append(all_da_event, da/1.e9)
-            all_dt_median = all_dt_event - np.median(all_dt_event)
+                if just_high_cc:
+                    if xcorr >= just_high_cc:
+                        all_dt_high_cc.append(dt)
+            if just_high_cc and len(all_dt_high_cc) > 10:
+                np_median = np.median(all_dt_high_cc)
+            else:
+                np_median = np.median(all_dt_event)
+            all_dt_median = all_dt_event - np_median
             all_da_median = all_da_event - np.median(all_da_event)
             for k in range(len(all_dt_median)):
                 passed_staev_tmp[k].insert(2, all_dt_median[k])
@@ -77,31 +89,25 @@ def reader(evadd, bands, band_period, all_stations=True):
             print e
     return passed_staev
 
-
 # ------------------- nr_dt -----------------------------
 def nr_dt(t_shift_array, max_ts=180., width=1., num_bands=1, 
                 enum=0, leg='default', line_plot=False):
     '''
     histogram plot for all measured traveltime anomalies
-    EXAMPLES:
-    1) For nr_cc:
-    max_ts=2., width=0.1
-    max_ts=2., width=0.01
-    2) For nr_dt:
-    max_ts=30., width=0.1
     '''
+       
     bins = np.arange(-int(max_ts), int(max_ts)+width, width)
+
+    for i in range(len(bins)): 
+        bins[i] = round(bins[i], 6)
     for i in range(len(t_shift_array)):
         t_shift_array[i] = round_to(t_shift_array[i], width)
+    
     digit = np.digitize(t_shift_array, bins)
     digit_list = digit.tolist()
-    
-    # |----------|----------|
-    # -1         0          1
-    #     ---->     <----
+   
     for i in range(len(digit_list)):
-        if t_shift_array[i] >= 0.:
-            digit_list[i] = digit_list[i]-1
+        digit_list[i] = digit_list[i]-1
 
     digit_count = {}
     for i in range(0, len(bins)):
@@ -130,16 +136,16 @@ def nr_dt(t_shift_array, max_ts=180., width=1., num_bands=1,
     # to load and calculate the percentage
     # IMPORTANT: the two lines up should be commented out!
     
-    #y_l = open(os.path.join('statistics_all', 'yband0'))
-    #y_l_all = pickle.load(y_l)
-    #for i in range(len(y_l_all)-1, -1, -1):
-    #    if y_l_all[i] < 1:
-    #        del y_l_all[i]
-    #        del y_line[i]
-    #        del x_line[i]
-    #plt.plot(x_line, np.array(y_line, dtype=float)/np.array(y_l_all, dtype=float)*100., 
-    #                            lw=3.0, label=leg, color=dic_color[str(enum)])
-    plt.plot(x_line, y_line, lw=3.0, label=leg, color=dic_color[str(enum)])
+    y_l = open(os.path.join('statistics_all', 'yband' + str(enum)))
+    y_l_all = pickle.load(y_l)
+    for i in range(len(y_l_all)-1, -1, -1):
+        if y_l_all[i] < 1:
+            del y_l_all[i]
+            del y_line[i]
+            del x_line[i]
+    plt.plot(x_line, np.array(y_line, dtype=float)/np.array(y_l_all, dtype=float)*100., 
+                                lw=3.0, label=leg, color=dic_color[str(enum)])
+    #plt.plot(x_line, y_line, lw=3.0, label=leg, color=dic_color[str(enum)])
     
 # --------------------------------------------------------------
 # ------------------- MAIN PROGRAM -----------------------------
@@ -157,7 +163,8 @@ for i in range(len(bands)):
     for j in range(len(proc_ev_ls)):
         # [bands[i]] is defined like this because reader gets
         # list as an input
-        all_staev = reader(proc_ev_ls[j], [bands[i]], band_period)
+        # !!!! just_high_cc is added to make sure that median is removed correctly!
+        all_staev = reader(proc_ev_ls[j], [bands[i]], band_period, just_high_cc=0.8)
         if all_staev == []: continue
         passed_staev = uf.filters(all_staev, [bands[i]], xcorr_limit=xcorr_limit)
         if passed_staev[0] == []: continue
@@ -172,7 +179,7 @@ for i in range(len(bands)):
                 t_shift_array.append(all_passed_staev[j][0][k][6])
     nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's')
 
-plt.xlim(97.0, 180.0)
+plt.xlim(97.0, 160.0)
 plt.xlabel('Epicentral Distance / degree', fontsize = 'xx-large', weight = 'bold')
 #plt.ylabel('nr of data', fontsize = 'xx-large', weight = 'bold')
 plt.ylabel('% of data (xcorr>=0.8)', fontsize = 'xx-large', weight = 'bold')
