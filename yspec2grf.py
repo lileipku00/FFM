@@ -171,13 +171,14 @@ for _i in xrange(len(fi_ttime)):
 
 req_phase = sys.argv[5]
 print '\nCutting Time-Window around %s' %req_phase
+print '\nWARNING: tb=20, ta=100 and they are hard coded!'
 if not os.path.isdir(os.path.join(path1, 'grf_cut')):
     os.mkdir(os.path.join(path1, 'grf_cut'))
 
 all_files = glob.glob(os.path.join(path1, 'SAC_realName', '*.*.*'))
 for i in range(0, len(all_files)):
     tr = read(os.path.join(all_files[i]))[0]
-    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=10, ta=45.6)
+    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=20, ta=100)
     if phase_flag == 'Y':
         tr_sliced.stats.sac.o = O
         #tr_sliced.stats.sac.a = A

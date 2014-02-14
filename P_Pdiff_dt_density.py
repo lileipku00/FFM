@@ -7,7 +7,7 @@
 # The main goal is to compare these two phases togehter!
 
 #-------------------------------------------------------------------
-#   Filename:  dt_density.py
+#   Filename:  P_Pdiff_dt_density.py
 #   Purpose:   plot dt calculated with FFM in a density map
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
@@ -33,8 +33,8 @@ import sys
 import time
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM'
-band = 'band08'
+processed_events_add = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5'
+band = 'band01'
 #band = 'BB'
 xcorr_limit = 0.8
 gr_x = 720
@@ -45,11 +45,16 @@ parts = 80
 #parts = 80
 projection = 'robin'
 ray_coverage = False
-read_only = True
+read_only = False
+
+# MAP projection
+long_0 = 180
 # -------------------------------------------------------
 
+if raw_input('Moved the items in MAP_* dir?(y/n)').lower() == 'n':
+    sys.exit()
 if not read_only:
-    if raw_input('Removed the items in grid_tmp dir?(y/n)').lower() == 'n':
+    if raw_input('Removed the items in MAP_OUTPUT dir?(y/n)').lower() == 'n':
         sys.exit()
 
 #############################################################
@@ -96,8 +101,10 @@ def ray_density(lat1, lon1, lat2, lon2,
     Create the DATA array which contains the
     info for ray density
     '''
+    global long_0
     exist_flag = False
-    mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+
+    mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
     #npts=max(gr_x, gr_y)
     # grd[2]: longitude
     # grd[3]: latitude
@@ -132,7 +139,9 @@ def ray_density(lat1, lon1, lat2, lon2,
 # -----------calculator--------------------
 def calculator(DATA, passed_staev, gr_x, npts, start, end, 
                     projection='robin', ray_coverage=False): 
-    mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+    global long_0
+
+    mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
     nonzero = []
     gr_y = gr_x
     grd = mymap.makegrid(gr_x, gr_y, returnxy=True)
@@ -153,10 +162,10 @@ def calculator(DATA, passed_staev, gr_x, npts, start, end,
         nonzero_tmp = np.nonzero(data)
         for j in range(len(nonzero_tmp[0])):
             nonzero.append((nonzero_tmp[0][j], nonzero_tmp[1][j]))
-    fi = open('grid_tmp/DATA-' + str(start), 'w')
+    fi = open('MAP_OUTPUT/DATA-' + str(start), 'w')
     pickle.dump(DATA, fi)
     fi.close()
-    fi = open('grid_tmp/nonzero-' + str(start), 'w')
+    fi = open('MAP_OUTPUT/nonzero-' + str(start), 'w')
     pickle.dump(nonzero, fi)
     fi.close()
 
@@ -190,7 +199,8 @@ if not read_only:
     print '\nERRORS:'
     for i in range(len(proc_ev_ls)):
         evnt = proc_ev_ls[i]
-        all_dt_event = np.array([])
+        all_dt_high_cc = []
+        all_dt_event = []
         passed_staev_tmp = []
         try:
             fio_dt = open(os.path.join(evnt, 'outfiles', 'ffproc.ampstt.' + band), 'r')
@@ -209,10 +219,15 @@ if not read_only:
                 dt = float(info_dt[5])
                 lat = float(info_dt[6])
                 lon = float(info_dt[7])
+                all_dt_event.append(dt)
                 if xcorr >= xcorr_limit:
                     passed_staev_tmp.append([lat, lon, xcorr, float(evlat), float(evlon), i])
-                    all_dt_event = np.append(all_dt_event, dt)
-            all_dt_median = all_dt_event - np.median(all_dt_event)
+                    all_dt_high_cc.append(dt)
+            if len(all_dt_high_cc) > 0:
+                np_median = np.median(all_dt_high_cc)
+            else:
+                np_median = np.median(all_dt_event)
+            all_dt_median = all_dt_high_cc - np_median
             for k in range(len(all_dt_median)):
                 passed_staev_tmp[k].insert(2, all_dt_median[k])
                 passed_staev.append(passed_staev_tmp[k])
@@ -270,7 +285,7 @@ if not read_only:
         "seismic_tomography_2")
 
     
-    mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+    mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
     #mymap.drawmapboundary(zorder=100)
     mymap.drawcoastlines()
     #passed_staev = passed_staev[0:100]
@@ -336,12 +351,12 @@ tomo_colormap_2 = _get_colormap({
         1.00000: [0.69804, 0.09412, 0.16863]},
         "seismic_tomography_2")
 
-mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
 #mymap.drawmapboundary(fill_color = 'black', color = 'red')
 mymap.drawcoastlines(color='black')
 
-data_ls = glob.glob('grid_tmp/DATA-*')
-nonzero_ls = glob.glob('grid_tmp/nonzero-*')
+data_ls = glob.glob('MAP_OUTPUT/DATA-*')
+nonzero_ls = glob.glob('MAP_OUTPUT/nonzero-*')
 DATA = None
 nonzero = None
 print '-------------'
@@ -385,22 +400,105 @@ cbar = plt.colorbar(orientation='horizontal')
 cbar.ax.tick_params(labelsize=12) 
 plt.show()
 
+# Clean 1.0% (dT)
+import scipy.ndimage as ndimage
+DATA_filt = ndimage.gaussian_filter(DATA, sigma=10.0, order=0)
+#DATA_filt = DATA
+mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
+mymap.drawcoastlines()
+# this one is for CMB, based on your notes and corresponding to 1.%
+mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.02537847, vmax=0.02537847)
+cbar = plt.colorbar(orientation='horizontal')
+cbar.ax.tick_params(labelsize=16)
+cbar.ax.set_xticklabels(['-1.0%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.0%'])
+plt.show()
+
+# Clean 1.5%
 import scipy.ndimage as ndimage
 DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
 DATA_filt = DATA
-mymap = Basemap(projection=projection, lon_0=180, lat_0=0)
+mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
 mymap.drawcoastlines()
 mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.0380677, vmax=0.0380677)
 #mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.02537848, vmax=0.02537848)
 #plt.colorbar()
 #plt.colorbar(orientation="horizontal")
 cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=12)
-#cbar.ax.set_xticklabels(['-1.5%', '-1.2%', '-0.9%', '-0.6%', '0.3%', '0%', '0.3%', '0.6%', '0.9%', '1.2%', '1.5%'])
+cbar.ax.tick_params(labelsize=16)
 cbar.ax.set_xticklabels(['-1.5%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.5%'])
 plt.show()
 
+# FOR RAY COVERAGE
+import scipy.ndimage as ndimage
+from matplotlib.colors import LogNorm
+DATA_filt = ndimage.gaussian_filter(DATA, sigma=5.0, order=0)
+DATA_filt = DATA
+mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
+mymap.drawcoastlines(color='white')
+vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
+mymap.pcolormesh(grd[2], grd[3], DATA_filt, norm=LogNorm(vmin=0.1, vmax=330))
+cbar = plt.colorbar(orientation='horizontal')
+cbar.ax.tick_params(labelsize=16)
+#cbar.ax.set_xticklabels(['0.1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '285'])
+plt.show()
 
+# ==================== PICKLING THE REQUIRED INFORMATION ===============================
+print "Pickling the final result..."
+os.mkdir(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add)))
+data_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'DATA'), 'w')
+projec_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'projection'), 'w')
+grd_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'grd'), 'w')
+tomo_color_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'tomo_colormap_2'), 'w')
+long_0_fi = open(os.path.join('.', 'MAP_' + os.path.basename(processed_events_add), 'long_0'), 'w')
+
+pickle.dump(DATA, data_fi)
+pickle.dump(projection, projec_fi)
+pickle.dump(grd, grd_fi)
+pickle.dump(tomo_colormap_2, tomo_color_fi)
+pickle.dump(long_0, long_0_fi)
+
+data_fi.close()
+projec_fi.close()
+grd_fi.close()
+tomo_color_fi.close()
+long_0_fi.close()
+print "DONT FORGET TO MOVE THE %s TO ANOTHER DIRECTORY..." %(os.path.basename(processed_events_add) + '_MAP')
+
+# For opening the files!
+# 24 lines
+#import glob
+#from matplotlib.colors import LinearSegmentedColormap
+#import matplotlib.pyplot as plt
+#import matplotlib.cm as cm
+#from mpl_toolkits.basemap import Basemap
+#import multiprocessing
+#import numpy as np
+#from obspy.core.util import locations2degrees
+#import os
+#import pickle
+#import sys
+#import time
+#
+#data_fi = open(os.path.join('.', 'DATA'), 'r')
+#projec_fi = open(os.path.join('.', 'projection'), 'r')
+#grd_fi = open(os.path.join('.', 'grd'), 'r')
+#tomo_color_fi = open(os.path.join('.', 'tomo_colormap_2'), 'r')
+#long_0_fi = open(os.path.join('.', 'long_0'), 'r')
+#
+#DATA = pickle.load(data_fi)
+#projection = pickle.load(projec_fi)
+#grd = pickle.load(grd_fi)
+#tomo_colormap_2 = pickle.load(tomo_color_fi)
+#long_0 = pickle.load(long_0_fi)
+# ==================== END PICKLING THE REQUIRED INFORMATION ===============================
+
+
+
+
+
+# =========================================================================================
+# ============================== OTHERS (use with care) ===================================
+# =========================================================================================
 # import scipy.ndimage as ndimage
 # DATA_filt = ndimage.gaussian_filter(DATA, sigma=10.0, order=0)
 # mymap = Basemap(projection=projection, lon_0=180, lat_0=0)

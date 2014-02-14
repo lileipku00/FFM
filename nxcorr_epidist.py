@@ -74,7 +74,7 @@ def reader(evadd, bands, band_period, all_stations=True, just_high_cc=False):
                 if just_high_cc:
                     if xcorr >= just_high_cc:
                         all_dt_high_cc.append(dt)
-            if just_high_cc and len(all_dt_high_cc) > 10:
+            if just_high_cc and len(all_dt_high_cc) > 0:
                 np_median = np.median(all_dt_high_cc)
             else:
                 np_median = np.median(all_dt_event)

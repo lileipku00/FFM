@@ -20,11 +20,11 @@ import subprocess
 import sys
 
 # ------------------- INPUT -----------------------------
-req_phase = 'P'
+req_phase = 'Pdiff'
 req_solver = 'yspec'
-req_processes = '36'
+req_processes = '1'
 add_event_info = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/results'
-add_proc_ev = '/import/neptun-helles/hosseini/FFM'
+add_proc_ev = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
 add_runff = '/home/hosseini/FFINVERSION/AMPLITUDES/Programs/ffproc/FFsetup'
 # -------------------------------------------------------
 

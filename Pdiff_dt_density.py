@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#### XXXX IT HAS A READER: BE CAREFUL ABOUT XCORR AND MEDIAN!!!!
+
 #-------------------------------------------------------------------
 #   Filename:  Pdiff_dt_density.py
 #   Purpose:   plot dt calculated with FFM in a density map
@@ -39,7 +41,7 @@ parts = 80
 #npts = 180
 #parts = 1
 projection = 'robin'
-ray_coverage = True
+ray_coverage = False
 read_only = False
 
 # MAP projection
@@ -208,7 +210,7 @@ if not read_only:
                 if xcorr >= xcorr_limit:
                     passed_staev_tmp.append([lat, lon, xcorr, float(evlat), float(evlon), i])
                     all_dt_high_cc.append(dt)
-            if len(all_dt_high_cc) > 10:
+            if len(all_dt_high_cc) > 0:
                 np_median = np.median(all_dt_high_cc)
             else:
                 np_median = np.median(all_dt_event)
