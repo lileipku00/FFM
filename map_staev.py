@@ -25,7 +25,7 @@ import os
 import sys
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1'
+processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
 #processed_events_add = '/import/neptun-helles/hosseini/FFM'
 band = 'band01'
 #band = 'BB'
