@@ -92,14 +92,12 @@ for item in stations_info:
     if item not in stations_info_trim:
         stations_info_trim.append(item)
 
-print '%s unique station-event pairs found...' % len(stations_info)
-print '------------------------'
-
 #stations_info_trim = []
 #for item in stations_info:
 #    stations_info_trim.append(item)
 
-
+print '%s unique station-event pairs found...' % len(stations_info_trim)
+print '------------------------'
 print '\nPlotting Events...'
 
 m = Basemap(projection='cyl', lon_0=0.0, lat_0=0.0, resolution='c')
@@ -111,7 +109,7 @@ m.drawmapboundary()
 
 for i in range(len(events_info)):
     print i,
-    sys.stdout.flush()
+    #sys.stdout.flush()
     try:
         x, y = m(float(events_info[i][1]), float(events_info[i][0]))
         focmecs = [float(events_info[i][2]), float(events_info[i][3]), float(events_info[i][4]),
@@ -121,17 +119,17 @@ for i in range(len(events_info)):
         b.set_zorder(10)
         ax.add_collection(b)
     except Exception, e:
-        print 'Exception in event %s: %s' % (i, e)
+        print '\n\nException in event %s: %s\n\n' % (i, e)
 
 print 'Plotting stations...'
 
 for i in range(len(stations_info_trim)):
     print i,
-    sys.stdout.flush()
+    #sys.stdout.flush()
     try:
         x, y = m(float(stations_info[i][1]), float(stations_info[i][0]))
         m.scatter(x, y, c='red', edgecolor='none', zorder=40, marker='v', s=40)
     except Exception, e:
-        print 'Exception in event %s: %s' % (i, e)
+        print '\n\nException in event %s: %s\n\n' % (i, e)
 
 plt.show()
