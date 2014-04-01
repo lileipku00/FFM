@@ -3,7 +3,7 @@
 
 #-------------------------------------------------------------------
 #   Filename:  map_staev.py
-#   Purpose:   maps stations and events used in measurements
+#   Purpose:   map stations and events used in measurements
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -26,10 +26,9 @@ import sys
 
 # ------------------- INPUT -----------------------------
 processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
-#processed_events_add = '/import/neptun-helles/hosseini/FFM'
 band = 'band01'
 #band = 'BB'
-xcorr_limit = 0.8
+xcorr_limit = -100
 # -------------------------------------------------------
 
 band_period = {
@@ -50,7 +49,8 @@ else:
     sys.exit('Wrong band is specified! (check the INPUT)')
 
 proc_ev_ls = glob.glob(os.path.join(processed_events_add, '*.*.*.*'))
-print '%s processed events found!' %(len(proc_ev_ls))
+print '%s processed events found!' % len(proc_ev_ls)
+
 failed = 0
 events_info = []
 stations_info = []
@@ -58,7 +58,6 @@ print '\nERRORS:'
 for i in range(len(proc_ev_ls)):
     evnt = proc_ev_ls[i]
     try:
-        fio_dt = open(os.path.join(evnt, 'outfiles', 'ffproc.ampstt.' + band), 'r')
         fio_source = open(os.path.join(evnt, 'outfiles', 'ampinv.source'), 'r')
         f_source = fio_source.readlines()
         ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
@@ -68,6 +67,8 @@ for i in range(len(proc_ev_ls)):
         except Exception, e:
             mrr, mtt, mpp, mrt, mrp, mtp = f_source[7].split()
         events_info.append([float(evlat), float(evlon), mrr, mtt, mpp, mrt, mrp, mtp])
+
+        fio_dt = open(os.path.join(evnt, 'outfiles', 'ffproc.ampstt.' + band), 'r')
         f_dt = fio_dt.readlines()
         for j in range(2, len(f_dt)):
             info_dt = f_dt[j].split()
@@ -80,18 +81,18 @@ for i in range(len(proc_ev_ls)):
         print e
         failed += 1
 
-print '%s events failed!' %(failed)
-print '%s station-event pairs found...' %(len(stations_info))
+print '%s events failed!' % failed
+print '%s station-event pairs found...' % len(stations_info)
 print '------------------------'
-
-#stations_info_trim = []
-#for item in stations_info:
-#    if item not in stations_info_trim:
-#        stations_info_trim.append(item)
 
 stations_info_trim = []
 for item in stations_info:
-    stations_info_trim.append(item)
+    if item not in stations_info_trim:
+        stations_info_trim.append(item)
+
+#stations_info_trim = []
+#for item in stations_info:
+#    stations_info_trim.append(item)
 
 
 print '\nPlotting...'
@@ -102,13 +103,14 @@ m.fillcontinents()
 m.drawparallels(np.arange(-90., 120., 30.))
 m.drawmeridians(np.arange(0., 420., 60.))
 m.drawmapboundary()
+
 for i in range(len(events_info)):
     print i,
     sys.stdout.flush()
     try:
         x, y = m(float(events_info[i][1]), float(events_info[i][0]))
-        focmecs = [float(events_info[i][2]),float(events_info[i][3]),float(events_info[i][4]),
-                    float(events_info[i][5]),float(events_info[i][6]),float(events_info[i][7])]
+        focmecs = [float(events_info[i][2]), float(events_info[i][3]), float(events_info[i][4]),
+                    float(events_info[i][5]), float(events_info[i][6]), float(events_info[i][7])]
         ax = plt.gca()
         b = Beach(focmecs, xy=(x, y), width=3, linewidth=1, alpha=0.85)
         b.set_zorder(10)
