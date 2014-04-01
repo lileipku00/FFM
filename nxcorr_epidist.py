@@ -29,7 +29,7 @@ import util_ffproc as uf
 # It should be changed to -100 (large negative number) or so for nr_cc!!
 xcorr_limit = 0.8
 #remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec'
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
+remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5'
 # -------------------------------------------------------
 
 # ------------------- round_to --------------------------
@@ -179,12 +179,14 @@ for i in range(len(bands)):
                 t_shift_array.append(all_passed_staev[j][0][k][6])
     nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's')
 
-plt.xlim(97.0, 160.0)
+#plt.xlim(97.0, 160.0)
+plt.xlim(30.0, 90.0)
 plt.xlabel('Epicentral Distance / degree', fontsize = 'xx-large', weight = 'bold')
 #plt.ylabel('nr of data', fontsize = 'xx-large', weight = 'bold')
 plt.ylabel('% of data (xcorr>=0.8)', fontsize = 'xx-large', weight = 'bold')
 plt.xticks(fontsize = 'xx-large', weight = 'bold')
 plt.yticks(fontsize = 'xx-large', weight = 'bold')
 #plt.title(fontsize = 'xx-large', weight = 'bold')
-plt.legend(prop={'size':22})
+#plt.legend(prop={'size':22})
+#plt.legend(prop={'size':22}, loc=8)
 plt.show()

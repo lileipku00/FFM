@@ -24,7 +24,7 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.8
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
+remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
 just_high_cc = 0.8
 
 all_processed = True

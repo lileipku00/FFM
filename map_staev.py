@@ -9,8 +9,6 @@
 #   License:   GPLv3
 #-------------------------------------------------------------------
 
-# WARNING: something is strange in finding the duplicated stations for plotting!
-
 #-----------------------------------------------------------------------
 #----------------Import required Modules (Python and Obspy)-------------
 #-----------------------------------------------------------------------
@@ -87,14 +85,14 @@ print '------------------------'
 print '%s station-event pairs found...' % len(stations_info)
 print '------------------------'
 
-#stations_info_trim = []
-#for item in stations_info:
-#    if item not in stations_info_trim:
-#        stations_info_trim.append(item)
-
 stations_info_trim = []
 for item in stations_info:
-    stations_info_trim.append(item)
+    if item not in stations_info_trim:
+        stations_info_trim.append(item)
+
+#stations_info_trim = []
+#for item in stations_info:
+#    stations_info_trim.append(item)
 
 print '%s unique station-event pairs found...' % len(stations_info_trim)
 print '------------------------'
@@ -128,7 +126,7 @@ for i in range(len(stations_info_trim)):
     print i,
     #sys.stdout.flush()
     try:
-        x, y = m(float(stations_info[i][1]), float(stations_info[i][0]))
+        x, y = m(float(stations_info_trim[i][1]), float(stations_info_trim[i][0]))
         m.scatter(x, y, c='red', edgecolor='none', zorder=40, marker='v', s=40)
     except Exception, e:
         print '\n\nException in event %s: %s\n\n' % (i, e)
