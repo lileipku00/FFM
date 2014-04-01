@@ -87,14 +87,14 @@ print '------------------------'
 print '%s station-event pairs found...' % len(stations_info)
 print '------------------------'
 
-stations_info_trim = []
-for item in stations_info:
-    if item not in stations_info_trim:
-        stations_info_trim.append(item)
-
 #stations_info_trim = []
 #for item in stations_info:
-#    stations_info_trim.append(item)
+#    if item not in stations_info_trim:
+#        stations_info_trim.append(item)
+
+stations_info_trim = []
+for item in stations_info:
+    stations_info_trim.append(item)
 
 print '%s unique station-event pairs found...' % len(stations_info_trim)
 print '------------------------'
@@ -121,6 +121,7 @@ for i in range(len(events_info)):
     except Exception, e:
         print '\n\nException in event %s: %s\n\n' % (i, e)
 
+print '\n------------------------'
 print 'Plotting stations...'
 
 for i in range(len(stations_info_trim)):
