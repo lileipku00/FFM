@@ -5,52 +5,93 @@ import os
 #### XXXX IT HAS A READER: BE CAREFUL ABOUT XCORR AND MEDIAN!!!!
 
 #----------------------reader---------------------------------
-def reader(evadd, bands, band_period, all_stations=True, just_high_cc=False):
-    '''
+
+
+def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, remove_GSN_median=False):
+    """
     This function reads the ffproc.ampstt.band....
-    '''
-    target_network = ['II', 'IU', 'CU', 'GT', 'IC']
+    """
+
+    GSN_stations = \
+        ['II.AAK', 'II.ABKT', 'II.ABPO', 'IU.ADK', 'IU.AFI', 'II.ALE', 'IU.ANMO', 'IU.ANTO', 'CU.ANWB', 'II.ARU',
+         'II.ASCN', 'CU.BBGH', 'IU.BBSR', 'CU.BCIP', 'GT.BDFB', 'II.BFO', 'GT.BGCA', 'IU.BILL', 'IC.BJT', 'II.BORG',
+         'GT.BOSA', 'II.BRVK', 'IU.CASY', 'IU.CCM', 'IU.CHTO', 'II.CMLA', 'II.COCO', 'IU.COLA', 'IU.COR',
+         'GT.CPUP', 'IU.CTAO', 'IU.DAV',  'GT.DBIC', 'II.DGAR', 'IU.DWPF', 'II.EFI', 'IC.ENH', 'II.ERM', 'II.ESK',
+         'II.FFC', 'IU.FUNA', 'IU.FURI', 'IU.GNI', 'IU.GRFO', 'CU.GRGR', 'CU.GRTK', 'CU.GTBY', 'IU.GUMO', 'IC.HIA',
+         'IU.HKT', 'IU.HNR', 'II.HOPE', 'IU.HRV', 'IU.INCN', 'IU.JOHN', 'II.JTS', 'II.KAPI', 'IU.KBL', 'IU.KBS',
+         'II.KDAK', 'IU.KEV', 'IU.KIEV', 'IU.KIP', 'II.KIV', 'IU.KMBO', 'IC.KMI', 'IU.KNTN', 'IU.KONO', 'IU.KOWA',
+         'II.KURK', 'II.KWAJ', 'GT.LBTB', 'IU.LCO', 'GT.LPAZ', 'IC.LSA', 'IU.LSZ', 'IU.LVC', 'II.LVZ', 'IU.MA2',
+         'IU.MACI', 'IU.MAJO', 'IU.MAKZ', 'II.MBAR', 'IU.MBWA', 'IC.MDJ', 'IU.MIDW', 'II.MSEY', 'IU.MSKU',
+         'II.MSVF', 'CU.MTDJ', 'II.NIL', 'II.NNA', 'II.NRIL', 'IU.NWAO', 'II.OBN', 'IU.OTAV', 'IU.PAB', 'II.PALK',
+         'IU.PAYG', 'IU.PET', 'II.PFO', 'GT.PLCA', 'IU.PMG', 'IU.PMSA', 'IU.POHA', 'IU.PTCN', 'IU.PTGA', 'IC.QIZ',
+         'IU.QSPA', 'IU.RAO', 'IU.RAR', 'II.RAYN', 'IU.RCBR', 'II.RPN', 'IU.RSSD', 'II.SACV', 'IU.SAML',  'IU.SBA',
+         'CU.SDDR', 'IU.SDV', 'IU.SFJD', 'II.SHEL', 'IU.SJG', 'IU.SLBS', 'IU.SNZO', 'IC.SSE', 'IU.SSPA', 'II.SUR',
+         'IU.TARA', 'IU.TATO', 'II.TAU', 'IU.TEIG', 'CU.TGUH', 'IU.TIXI', 'II.TLY', 'IU.TRIS', 'IU.TRQA', 'IU.TSUM',
+         'IU.TUC', 'IU.ULN', 'GT.VNDA', 'IU.WAKE', 'IU.WCI', 'IC.WMQ', 'II.WRAB', 'IU.WVT', 'IC.XAN', 'IU.XMAS',
+         'IU.YAK', 'IU.YSS']
+
+    failed = 0
     passed_staev = []
+    evlats = []
+    evlons = []
+
     for i in bands:
         try:
             str_i = 'band0' + str(i)
-            passed_staev_tmp = []
+            all_dt_high_cc = []
+            dt_GSN = []
             all_dt_event = np.array([])
             all_da_event = np.array([])
-            all_dt_high_cc = []
-            fio_dt = open(os.path.join(evadd, 'outfiles', 
-                            'ffproc.ampstt.' + str_i), 'r')
+            passed_staev_tmp = []
+
+            fio_source = open(os.path.join(evadd, 'outfiles', 'ampinv.source'), 'r')
+            f_source = fio_source.readlines()
+            ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
+            evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()
+            try:
+                mrr, mtt, mpp, mrt, mrp, mtp = f_source[13].split()
+            except Exception, e:
+                mrr, mtt, mpp, mrt, mrp, mtp = f_source[7].split()
+
+            fio_dt = open(os.path.join(evadd, 'outfiles', 'ffproc.ampstt.' + str_i), 'r')
             f_dt = fio_dt.readlines()
             for j in range(2, len(f_dt)):
                 info_dt = f_dt[j].split()
-                if not all_stations:
-                    if not info_dt[9].split('.')[0] in target_network:
-                        continue
                 xcorr = float(info_dt[2])
                 da = float(info_dt[3])
                 dt = float(info_dt[5])
                 lat = float(info_dt[6])
                 lon = float(info_dt[7])
                 sta_id = info_dt[9]
+                # First we collect all the information and then filter it in the next step!
                 passed_staev_tmp.append([lat, lon, xcorr, band_period[str(i)], sta_id])
                 all_dt_event = np.append(all_dt_event, dt)
                 all_da_event = np.append(all_da_event, da/1.e9)
                 if just_high_cc:
                     if xcorr >= just_high_cc:
                         all_dt_high_cc.append(dt)
-            if just_high_cc and len(all_dt_high_cc) > 0:
+                        if remove_GSN_median:
+                            station_id = '%s.%s' % (info_dt[9].split('.')[0], info_dt[9].split('.')[1])
+                            if station_id in GSN_stations:
+                                dt_GSN.append(dt)
+            if remove_GSN_median and len(remove_GSN_median) > 0:
+                np_median = np.median(dt_GSN)
+            elif just_high_cc and len(all_dt_high_cc) > 0:
                 np_median = np.median(all_dt_high_cc)
             else:
                 np_median = np.median(all_dt_event)
+
             all_dt_median = all_dt_event - np_median
             all_da_median = all_da_event - np.median(all_da_event)
+
             for k in range(len(all_dt_median)):
                 passed_staev_tmp[k].insert(2, all_dt_median[k])
             for k in range(len(all_da_median)):
                 passed_staev_tmp[k].insert(3, all_da_median[k])
             passed_staev.append(passed_staev_tmp)
         except Exception, e:
-            print e
+            print 'ERROR: %s' % e
+            failed += 1
     return passed_staev
 
 #----------------------filters---------------------------------
