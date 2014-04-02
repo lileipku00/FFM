@@ -324,8 +324,9 @@ if not read_only:
                 pp_flag = True
                 break
             else:
-                print '\nAll the processes are finished...'
                 pp_flag = False
+        if not pp_flag:
+            print '\nAll the processes are finished...'
 
 # =================== colormap ==============================
 # A pretty colormap for use in tomography.
