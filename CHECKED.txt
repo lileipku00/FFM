@@ -1,4 +1,6 @@
 CHECKED Python files:
+Pdiff_dt_density.py
+map_staev.py
 
 
 DEPRICATED:
@@ -17,9 +19,7 @@ Filter_Test_Pdiff_dt_density.py
 find_events.py
 mag_nw.py
 map_dt.py
-map_staev.py
 nxcorr_epidist.py
-Pdiff_dt_density.py
 P_dt_density.py
 plot_dT_dA.py
 P_Pdiff_dt_density.py

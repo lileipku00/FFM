@@ -26,21 +26,37 @@ import util_ffproc as uf
 # It should be changed to -100 (large negative number) or so for nr_cc!!
 xcorr_limit = 0.8
 #xcorr_limit = -100
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5'
-#remote_dir = '/import/neptun-helles/hosseini/FFM'
+remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180''
+
 nr_cc = False
 line_plot = False
+
+all_stations = False
+just_high_cc = xcorr_limit
+remove_GSN_median = True
 # -------------------------------------------------------
 
+
+# =======================================================
+# =================== FUNCTIONS =========================
+# =======================================================
+
 # ------------------- round_to --------------------------
+
+
 def round_to(n, precission):
+    """
+    rounding the numbers!
+    """
     correction = 0.5 if n >= 0 else -0.5
     rounded = int(n/precission+correction)*precission
     rounded2 = round(rounded, 6)
     return rounded2
 
 # ------------------- nr_dt -----------------------------
-def nr_dt(t_shift_array, max_ts=30., width=0.5, num_bands=1, 
+
+
+def nr_dt(t_shift_array, max_ts=30., width=0.5, num_bands=1,
                 enum=0, leg='default', line_plot=False):
     '''
     histogram plot for all measured traveltime anomalies
@@ -109,23 +125,27 @@ def nr_dt(t_shift_array, max_ts=30., width=0.5, num_bands=1,
 # --------------------------------------------------------------
 bands = sys.argv[1]
 bands = range(int(bands[0]), int(bands[-1])+1)
-band_period = {'1': 30.0,'2': 21.2,'3': 15.0,'4': 10.6,'5': 7.5,
-                '6': 5.3,'7': 3.7,'8': 2.7}
+band_period = {'1': 30.0, '2': 21.2, '3': 15.0, '4': 10.6, '5': 7.5, '6': 5.3, '7': 3.7, '8': 2.7}
 
 proc_ev_ls = glob.glob(os.path.join(remote_dir, '*.*.*.*'))
-print '%s processed events found!' %(len(proc_ev_ls))
+print '%s processed events found!' % len(proc_ev_ls)
 
 for i in range(len(bands)):
     all_passed_staev = []
     for j in range(len(proc_ev_ls)):
-        # [bands[i]] is defined like this because reader gets
-        # list as an input
-        # !!!! just_high_cc is added to make sure that median is removed correctly!
-        all_staev = uf.reader(proc_ev_ls[j], [bands[i]], band_period, just_high_cc=0.8)
-        if all_staev == []: continue
+        # [bands[i]] is passed like this because reader gets list as an input
+        # reader(all_stations=False, just_high_cc=False, remove_GSN_median=False):
+        all_staev = uf.reader(proc_ev_ls[j], [bands[i]], band_period, all_stations=all_stations,
+                              just_high_cc=just_high_cc, remove_GSN_median=remove_GSN_median)
+        if not all_staev:
+            continue
+        import ipdb; ipdb.set_trace()
         passed_staev = uf.filters(all_staev, [bands[i]], xcorr_limit=xcorr_limit)
-        if passed_staev[0] == []: continue
+        if not passed_staev[0]:
+            continue
+
         all_passed_staev.append(passed_staev)
+
     t_shift_array = []
     for j in range(len(all_passed_staev)):
         # [0] in all_passed_staev[j][0] shows the current band
@@ -140,9 +160,9 @@ for i in range(len(bands)):
                     # However, if nr_cc is selected, it will be number of stations vs 
                     # cross correlation coefficient
                     t_shift_array.append(all_passed_staev[j][0][k][4])
-    print len(t_shift_array)
-    nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's', 
-                line_plot=line_plot)
+    print 'Length of all passed data: %s' % len(t_shift_array)
+    import ipdb; ipdb.set_trace()
+    nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's', line_plot=line_plot)
 
 if nr_cc:
     #Pdiff

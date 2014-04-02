@@ -95,28 +95,31 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
     return passed_staev
 
 #----------------------filters---------------------------------
-def filters(all_staev, bands, xcorr_limit = False, all_stations=True):
-    '''
-    filters all station-event pairs based on priori
-    '''
-    #target_network = ['II', 'IU', 'CU', 'GT', 'IC']
-    ind_failed = []
+
+
+def filters(all_staev, bands, xcorr_limit=False, all_stations=True):
+    """
+    filters all station-event pairs based on inputs
+    """
+    indx_failed = []
     for i in range(len(all_staev[0])):
-        flag = 'T'
+        flag = True
         # required stations are those that can pass the xcorr test in all bands
         # therefore, it first checks the xcorr in all bands for one station
-        # then continue calculating the RMS fit to the data
+        # Obviously, bands can be in the shape of [band] in order to check just one band and not all!
         for j in range(len(bands)):
             if all_staev[j][i][4] < xcorr_limit:
-                    flag = 'F'
+                flag = False
+                break
             #if not all_stations:
             #    if not all_staev[j][i][6].split('.')[0] in target_network:
             #            flag = 'F'
-        if flag == 'F':
-            ind_failed.append(i)
-    ind_failed.reverse()
+        if not flag:
+            indx_failed.append(i)
+
+    indx_failed.reverse()
     for j in range(len(bands)):
-        for i in ind_failed:
+        for i in indx_failed:
             all_staev[j].pop(i)
     return all_staev 
 
