@@ -74,7 +74,7 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
                             station_id = '%s.%s' % (info_dt[9].split('.')[0], info_dt[9].split('.')[1])
                             if station_id in GSN_stations:
                                 dt_GSN.append(dt)
-            if remove_GSN_median and len(remove_GSN_median) > 0:
+            if remove_GSN_median and len(dt_GSN) > 0:
                 np_median = np.median(dt_GSN)
             elif just_high_cc and len(all_dt_high_cc) > 0:
                 np_median = np.median(all_dt_high_cc)
