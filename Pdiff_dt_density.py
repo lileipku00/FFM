@@ -399,10 +399,10 @@ for i in range(len(nonzero)-1, -1, -1):
     else:
         nonzero_unique.append([nonzero[i], enum])
         enum = 1
+
 if not ray_coverage:
     for i in range(len(nonzero_unique)):
-        import ipdb; ipdb.set_trace()
-        DATA[nonzero_unique[i][0]] = DATA[nonzero_unique[i][0]]/nonzero_unique[i][1]
+        DATA[nonzero_unique[i][0]] = DATA[nonzero_unique[i][0]]/float(nonzero_unique[i][1])
 
 print '-------------'
 print 'Plotting...'

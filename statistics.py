@@ -26,14 +26,15 @@ import util_ffproc as uf
 # It should be changed to -100 (large negative number) or so for nr_cc!!
 xcorr_limit = 0.8
 #xcorr_limit = -100
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180''
+remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
 
 nr_cc = False
-line_plot = False
+line_plot = True
 
+# All stations is already disabled, so the following flag does not change anything
 all_stations = False
 just_high_cc = xcorr_limit
-remove_GSN_median = True
+remove_GSN_median = False
 # -------------------------------------------------------
 
 
@@ -56,7 +57,7 @@ def round_to(n, precission):
 # ------------------- nr_dt -----------------------------
 
 
-def nr_dt(t_shift_array, max_ts=30., width=0.5, num_bands=1,
+def nr_dt(t_shift_array, max_ts=30., width=0.1, num_bands=1,
                 enum=0, leg='default', line_plot=False):
     '''
     histogram plot for all measured traveltime anomalies
@@ -139,7 +140,6 @@ for i in range(len(bands)):
                               just_high_cc=just_high_cc, remove_GSN_median=remove_GSN_median)
         if not all_staev:
             continue
-        import ipdb; ipdb.set_trace()
         passed_staev = uf.filters(all_staev, [bands[i]], xcorr_limit=xcorr_limit)
         if not passed_staev[0]:
             continue
@@ -161,7 +161,10 @@ for i in range(len(bands)):
                     # cross correlation coefficient
                     t_shift_array.append(all_passed_staev[j][0][k][4])
     print 'Length of all passed data: %s' % len(t_shift_array)
-    import ipdb; ipdb.set_trace()
+    
+    import py2mat_mod
+    py2mat_mod.py2mat(t_shift_array, 't_shift_array_%s' % bands[i], 't_shift_array_%s' % bands[i])
+    
     nr_dt(t_shift_array, num_bands=len(bands), enum=i, leg=str(band_period[str(bands[i])]) + 's', line_plot=line_plot)
 
 if nr_cc:
