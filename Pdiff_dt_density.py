@@ -433,7 +433,7 @@ mymap.drawcoastlines()
 # this one is for CMB, based on your notes and corresponding to 1.%
 mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.02537847, vmax=0.02537847)
 cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=16)
+cbar.ax.tick_params(labelsize=24)
 cbar.ax.set_xticklabels(['-1.0%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.0%'])
 plt.show()
 
@@ -459,9 +459,10 @@ DATA_filt = DATA
 mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
 mymap.drawcoastlines(color='black')
 vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
-mymap.pcolormesh(grd[2], grd[3], DATA_filt, norm=LogNorm(vmin=0.1, vmax=vmin))
+print vmin
+mymap.pcolormesh(grd[2], grd[3], DATA_filt, norm=LogNorm(vmin=1, vmax=vmin))
 cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=16)
+cbar.ax.tick_params(labelsize=24)
 #cbar.ax.set_xticklabels(['0.1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '285'])
 plt.show()
 
