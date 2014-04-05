@@ -25,7 +25,7 @@ import util_ffproc as uf
 # ------------------- INPUT -----------------------------
 # It should be changed to -100 (large negative number) or so for nr_cc!!
 xcorr_limit = -100
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5_32_100'
 
 nr_cc = True
 line_plot = True
