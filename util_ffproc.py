@@ -62,9 +62,10 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
                 dt = float(info_dt[5])
                 lat = float(info_dt[6])
                 lon = float(info_dt[7])
+                epi = float(info_dt[8])
                 sta_id = info_dt[9]
                 # First we collect all the information and then filter it in the next step!
-                passed_staev_tmp.append([lat, lon, xcorr, band_period[str(i)], sta_id])
+                passed_staev_tmp.append([lat, lon, xcorr, band_period[str(i)], epi, sta_id])
                 all_dt_event = np.append(all_dt_event, dt)
                 all_da_event = np.append(all_da_event, da/1.e9)
                 if just_high_cc:

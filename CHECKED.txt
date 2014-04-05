@@ -1,6 +1,11 @@
 CHECKED Python files:
 Pdiff_dt_density.py
 map_staev.py
+statistics.py
+nxcorr_epidist.py
+
+
+NOT IMPORTANT FOR THE PAPER:
 
 
 DEPRICATED:
@@ -19,14 +24,12 @@ Filter_Test_Pdiff_dt_density.py
 find_events.py
 mag_nw.py
 map_dt.py
-nxcorr_epidist.py
 P_dt_density.py
 plot_dT_dA.py
 P_Pdiff_dt_density.py
 PyYSPEC_input.py
 PyYSPEC.py
 run_serial.py
-statistics.py
 TEST_dt_density.py
 updated_processed_finder.py
 util_ffproc.py
