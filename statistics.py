@@ -24,17 +24,16 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 # It should be changed to -100 (large negative number) or so for nr_cc!!
-xcorr_limit = 0.8
-#xcorr_limit = -100
+xcorr_limit = -100
 remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
 
-nr_cc = False
+nr_cc = True
 line_plot = True
 
 # All stations is already disabled, so the following flag does not change anything
 all_stations = False
 just_high_cc = xcorr_limit
-remove_GSN_median = False
+remove_GSN_median = True
 # -------------------------------------------------------
 
 
@@ -57,9 +56,8 @@ def round_to(n, precission):
 # ------------------- nr_dt -----------------------------
 
 
-def nr_dt(t_shift_array, max_ts=30., width=0.1, num_bands=1,
-                enum=0, leg='default', line_plot=False):
-    '''
+def nr_dt(t_shift_array, max_ts=30., width=0.1, num_bands=1, enum=0, leg='default', line_plot=False):
+    """
     histogram plot for all measured traveltime anomalies
     EXAMPLES:
     1) For nr_cc:
@@ -68,7 +66,7 @@ def nr_dt(t_shift_array, max_ts=30., width=0.1, num_bands=1,
     2) For nr_dt:
     max_ts=30., width=0.1
     max_ts=30., width=0.5
-    '''
+    """
     bins = np.arange(-int(max_ts), int(max_ts)+width, width)
     
     for i in range(len(bins)): 
@@ -80,30 +78,26 @@ def nr_dt(t_shift_array, max_ts=30., width=0.1, num_bands=1,
     digit_list = digit.tolist()
     
     for i in range(len(digit_list)):
-        digit_list[i] = digit_list[i]-1
+        digit_list[i] -= 1
     
     digit_count = {}
     for i in range(0, len(bins)):
         digit_count[str(i)] = digit_list.count(i)
     
-    dic_color = {'0': 'blue', '1': 'deepskyblue', '2': 'green', 
-                    '3': 'darkorange', '4': 'brown', 
-                    '5': 'olive', '6': 'tan', '7': 'darkviolet'}
+    dic_color = {'0': 'blue', '1': 'deepskyblue', '2': 'green', '3': 'darkorange', '4': 'brown', '5': 'olive',
+                 '6': 'tan', '7': 'darkviolet'}
+
     x_line = []
     y_line = []
     for i in range(0, len(bins)):
         if not line_plot:
-            if i==0:
-                plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
-                        width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
-                        color = dic_color[str(enum)], 
-                        edgecolor = dic_color[str(enum)], 
+            if i == 0:
+                plt.bar(left=bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), width=1.5*width/2./num_bands,
+                        height=digit_count[str(i)], color=dic_color[str(enum)], edgecolor=dic_color[str(enum)],
                         label=leg)
             else:
-                plt.bar(left = bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands), 
-                        width = 1.5*width/2./num_bands, height = digit_count[str(i)], 
-                        color = dic_color[str(enum)], 
-                        edgecolor = dic_color[str(enum)])
+                plt.bar(left=bins[i]-width*(0.25*1.5-enum*1.5*0.5/num_bands),  width=1.5*width/2./num_bands,
+                        height=digit_count[str(i)], color=dic_color[str(enum)], edgecolor=dic_color[str(enum)])
         else:
             x_line.append(bins[i])
             y_line.append(digit_count[str(i)])
