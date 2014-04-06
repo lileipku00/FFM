@@ -234,8 +234,8 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single):
     # !!! change these according to your case!
     plt.xlim(1.7, 31)
     plt.ylim(0.0, 1.6)
-    plt.xticks(x, fontsize = 'x-large', weight = 'bold')
-    plt.yticks(fontsize = 'x-large', weight = 'bold')
+    plt.xticks(x, fontsize='x-large', weight='bold')
+    plt.yticks(fontsize='x-large', weight='bold')
     plt.plot(per, all_tt_mean, lw=3, color='black', label='Mean')
     plt.plot(per, all_tt_std, lw=3, color='red', label='STD')
     plt.legend(loc=5, prop={'size': 32})
@@ -244,16 +244,16 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single):
     
     plt.figure() 
     plt.subplot(1, 1, 1)
-    plt.ylabel('Time difference (dT)', fontsize = 'x-large', weight = 'bold')
-    plt.xlabel('Dominant Period', fontsize = 'x-large', weight = 'bold')
+    plt.ylabel('Time difference (dT)', fontsize='x-large', weight='bold')
+    plt.xlabel('Dominant Period', fontsize='x-large', weight='bold')
     x = [2.7, 3.7, 5.3, 7.5, 10.6, 15.0, 21.2, 30.0]
     plt.xlim(xmin=0.0)
     #plt.ylim(ymin=0.25, ymax=0.65)
     plt.vlines(x, 0.0, 0.65, linestyle='--')
     plt.ylim(0.0, 0.65)
     plt.xlim(1.7, 31.)
-    plt.xticks(x, fontsize = 'x-large', weight = 'bold')
-    plt.yticks(fontsize = 'x-large', weight = 'bold')
+    plt.xticks(x, fontsize='x-large', weight='bold')
+    plt.yticks(fontsize='x-large', weight='bold')
     #pltitle = evname
     #pltitle += '\nxcorr >= %s' %(xcorr_limit)
     #pltitle = '#station-event pairs (dT): %s\n' %(weight_tt)
@@ -267,7 +267,17 @@ def meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single):
     print "start pickling the meanall_file in %s..." % meanall_file
     pickle.dump(meanall_dt, meanall_file)
     print "DONE"
-    
+
+    print '\n\n=========='
+    print 'bands:'
+    print per
+    print 'mean values:'
+    print meanall_dt
+
+    import py2mat_mod
+    py2mat_mod.py2mat(per, 'dispersion_period', 'dispersion_period')
+    py2mat_mod.py2mat(meanall_dt, 'dispersion_meanall_dt', 'dispersion_meanall_dt')
+
     plt.plot(per, meanall_dt, linewidth=3)
 
     #plt.subplot(2, 1, 2)

@@ -162,6 +162,10 @@ else:
             uf.writer(passed_staev, bands)
     if plot_scatter:
         uf.ffpscatter(all_passed_staev, all_events=True)
+
+    import py2mat_mod
+    py2mat_mod.py2mat(all_passed_staev, 'dispersion_all_passed_staev', 'dispersion_all_passed_staev')
+
     if plot_mean:
         all_dt_mean = []
         all_a_mean = []
