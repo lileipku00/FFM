@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------
-#   Filename:  plot_dT_dA.py
-#   Purpose:   plot dT and dA againts dominant period for FFM
+#   Filename:  dispersion_dT_dA.py
+#   Purpose:   plot dispersion curves for dT and dA out of FFM
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -15,6 +15,8 @@
 
 # Required Python modules will be imported in this part.
 import glob
+import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
 import numpy as np
 import os
 import shutil
@@ -25,18 +27,26 @@ import util_ffproc as uf
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.8
 remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
-just_high_cc = 0.8
 
-all_processed = True
-update_all = True
+# All stations is already disabled, so the following flag does not change anything
+all_stations = False
+just_high_cc = xcorr_limit
+remove_GSN_median = True
 
 plot_mean = True
 plot_scatter = False
-
 plot_sta = True
-all_stations = True
+
+# ----- IF YOU DO NOT KNOW WHAT YOU ARE DOING, DO NOT CHANGE THE FOLLOWING INPUTS -------
+# If not all_processed: it will use the address given as an input...keep this to True as long as you do not want
+# to check something!
+all_processed = True
+# Remove statistics dir and generate a new one!
+update_all = True
+
+# if not just_selected_events: it uses the list of events defined in list_events
 just_selected_events = False
-list_events = [\
+list_events = [
 #'0007.2009.089.a',  
 #'0013.2009.136.a',
 #'0022.2009.321.a',
@@ -105,25 +115,28 @@ list_events = [\
 
 intro = 20*'-'
 intro += '\nUsage:'
-intro += '\npython plot_dT_dA.py bands[1-3] address-for-FFM-event.\n'
+intro += '\npython dispersion_dT_dA.py bands[1-3] address-for-FFM-event.\n'
 intro += 20*'-'
 
 bands = sys.argv[1]
 bands = range(int(bands[0]), int(bands[-1])+1)
-band_period = {'1': 30.0,'2': 21.2,'3': 15.0,'4': 10.6,'5': 7.5,
-                '6': 5.3,'7': 3.7,'8': 2.7}
+band_period = {'1': 30.0, '2': 21.2, '3': 15.0, '4': 10.6, '5': 7.5, '6': 5.3, '7': 3.7, '8': 2.7}
+
 if not all_processed:
     evadd = sys.argv[2]
-    evname = evadd.split('/')[-1]
-    if not evname: evname = evadd.split('/')[-2]
-    all_staev = uf.reader(evadd, bands, band_period, all_stations=all_stations, 
-                                just_high_cc = just_high_cc)
-    passed_staev = uf.filters(all_staev, bands, xcorr_limit=xcorr_limit,
-                                                all_stations=all_stations)
-    if plot_scatter: uf.ffpscatter(passed_staev)
+    evname = os.path.baseanme(evadd)
+    if not evname:
+        evname = evadd.split('/')[-2]
+
+    all_staev = uf.reader(evadd, bands, band_period, all_stations=all_stations, just_high_cc=just_high_cc,
+                          remove_GSN_median=remove_GSN_median)
+    passed_staev = uf.filters(all_staev, bands, xcorr_limit=xcorr_limit)
+    if plot_scatter:
+        uf.ffpscatter(passed_staev)
     if plot_mean: 
         per, dt_mean, a_mean, flag = uf.stamean(passed_staev)
         uf.ffplotmean(per, dt_mean)
+
 else:
     if not just_selected_events:
         proc_ev_ls = glob.glob(os.path.join(remote_dir, '*.*.*.*'))
@@ -131,21 +144,24 @@ else:
         proc_ev_ls = []
         for ev in list_events:
             proc_ev_ls.append(os.path.join(remote_dir, ev))
-    print '%s processed events found!' %(len(proc_ev_ls))
+    print '%s processed events found!' % len(proc_ev_ls)
     if update_all:
         shutil.rmtree(os.path.join('.', 'statistics'))
         os.mkdir(os.path.join('.', 'statistics'))
     all_passed_staev = []
     for i in range(len(proc_ev_ls)):
-        all_staev = uf.reader(proc_ev_ls[i], bands, band_period, all_stations=all_stations,
-                                just_high_cc = just_high_cc)
-        if all_staev == []: continue
-        passed_staev = uf.filters(all_staev, bands, xcorr_limit=xcorr_limit, 
-                                                all_stations=all_stations)
-        if passed_staev[0] == []: continue
+        all_staev = uf.reader(proc_ev_ls[i], bands, band_period, all_stations=all_stations, just_high_cc=just_high_cc,
+                              remove_GSN_median=remove_GSN_median)
+        if not all_staev:
+            continue
+        passed_staev = uf.filters(all_staev, bands, xcorr_limit=xcorr_limit)
+        if not passed_staev[0]:
+            continue
         all_passed_staev.append(passed_staev)
-        if update_all: uf.writer(passed_staev, bands)
-    if plot_scatter: uf.ffpscatter(all_passed_staev, all_events=True)
+        if update_all:
+            uf.writer(passed_staev, bands)
+    if plot_scatter:
+        uf.ffpscatter(all_passed_staev, all_events=True)
     if plot_mean:
         all_dt_mean = []
         all_a_mean = []
@@ -176,9 +192,6 @@ else:
         uf.meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single)
 
     if plot_sta:
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.basemap import Basemap
-        import numpy as np
         plt.figure()
         plt.subplot(1,1,1)
         m = Basemap(projection='cyl', lon_0=0.0, lat_0=0.0, resolution='c')
