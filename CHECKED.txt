@@ -1,38 +1,41 @@
-CHECKED Python files:
-Pdiff_dt_density.py
-map_staev.py
-statistics.py
-nxcorr_epidist.py
+CHECKED Python files
+--------------------
+1. Pdiff_dt_density.py
+2. map_staev.py
 
+3. statistics.py
+4. nxcorr_epidist.py
+5. plot_dT_dA.py --> dispersion_dT_dA.py
+6. util_ffproc.py
 
-NOT IMPORTANT FOR THE PAPER:
+NOT CHECKED
+-----------
+1. util_plot_dT.py
+2. mag_nw.py
+3. bin_events.py
+4. epi_ffm_plot.py
+5. ffm_plot.py
 
+NOT IMPORTANT (FFM paper)
+------------------------
+1. archive_finder.py
+2. find_events.py
+3. create_events_file.py
+4. updated_processed_finder.py
 
-DEPRICATED:
-grid_plot.py
+5. ffm_to_ascii.py
 
+6. P_Pdiff_dt_density.py
+7. P_dt_density.py
+8. Filter_Test_Pdiff_dt_density.py
+9. TEST_dt_density.py
 
+10. PyYSPEC.py
+11. PyYSPEC_input.py
+12. yspec2grf.py
+13. util_PyYSPEC.py
 
-
-archive_finder.py
-bin_events.py
-create_events_file.py
-epi_ffm_plot.py
-ffm_plot.py
-ffm_to_ascii.py
-Filter_Test_Pdiff_dt_density.py
-find_events.py
-mag_nw.py
-map_dt.py
-P_dt_density.py
-plot_dT_dA.py
-P_Pdiff_dt_density.py
-PyYSPEC_input.py
-PyYSPEC.py
-run_serial.py
-TEST_dt_density.py
-updated_processed_finder.py
-util_ffproc.py
-util_plot_dT.py
-util_PyYSPEC.py
-yspec2grf.py
+DEPRICATED
+----------
+1. grid_plot.py
+2. map_dt.py
