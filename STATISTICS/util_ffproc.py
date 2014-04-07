@@ -82,6 +82,9 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
             else:
                 np_median = np.median(all_dt_event)
 
+            #np_median = 0
+			print 'MEDIAN: %s ... length GSN: %s' % (np_median, len(dt_GSN))
+
             all_dt_median = all_dt_event - np_median
             all_da_median = all_da_event - np.median(all_da_event)
 
@@ -137,10 +140,20 @@ def ffpscatter(passed_staev, all_events=False):
                 plt.plot(passed_staev[i][j][5], passed_staev[i][j][2], 'ko')
         plt.show()
     else:
+        ls_all_passed_band = []
+        ls_all_passed_dt = []
         for k in range(len(passed_staev)):
             for i in range(len(passed_staev[k])):
                 for j in range(len(passed_staev[k][i])):
                     plt.plot(passed_staev[k][i][j][5], passed_staev[k][i][j][2], 'ko')
+                    ls_all_passed_band.append(passed_staev[k][i][j][5])
+                    ls_all_passed_dt.append(passed_staev[k][i][j][2])
+
+        plt.ion()
+        import py2mat_mod
+        py2mat_mod.py2mat(ls_all_passed_band, 'dispersion_all_passed_band', 'dispersion_all_passed_band')
+        py2mat_mod.py2mat(ls_all_passed_dt, 'dispersion_all_passed_dt', 'dispersion_all_passed_dt')
+
         plt.show()
 
 #----------------------stamean---------------------------------

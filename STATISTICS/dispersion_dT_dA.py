@@ -26,7 +26,8 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.8
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5_32_100'
+#remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
 
 # All stations is already disabled, so the following flag does not change anything
 all_stations = False
@@ -111,6 +112,24 @@ list_events = [
 '0718.2009.302.a',
 '0731.2009.148.a',
 '0756.2009.189.a']
+
+GSN_stations = \
+    ['II.AAK', 'II.ABKT', 'II.ABPO', 'IU.ADK', 'IU.AFI', 'II.ALE', 'IU.ANMO', 'IU.ANTO', 'CU.ANWB', 'II.ARU',
+     'II.ASCN', 'CU.BBGH', 'IU.BBSR', 'CU.BCIP', 'GT.BDFB', 'II.BFO', 'GT.BGCA', 'IU.BILL', 'IC.BJT', 'II.BORG',
+     'GT.BOSA', 'II.BRVK', 'IU.CASY', 'IU.CCM', 'IU.CHTO', 'II.CMLA', 'II.COCO', 'IU.COLA', 'IU.COR',
+     'GT.CPUP', 'IU.CTAO', 'IU.DAV',  'GT.DBIC', 'II.DGAR', 'IU.DWPF', 'II.EFI', 'IC.ENH', 'II.ERM', 'II.ESK',
+     'II.FFC', 'IU.FUNA', 'IU.FURI', 'IU.GNI', 'IU.GRFO', 'CU.GRGR', 'CU.GRTK', 'CU.GTBY', 'IU.GUMO', 'IC.HIA',
+     'IU.HKT', 'IU.HNR', 'II.HOPE', 'IU.HRV', 'IU.INCN', 'IU.JOHN', 'II.JTS', 'II.KAPI', 'IU.KBL', 'IU.KBS',
+     'II.KDAK', 'IU.KEV', 'IU.KIEV', 'IU.KIP', 'II.KIV', 'IU.KMBO', 'IC.KMI', 'IU.KNTN', 'IU.KONO', 'IU.KOWA',
+     'II.KURK', 'II.KWAJ', 'GT.LBTB', 'IU.LCO', 'GT.LPAZ', 'IC.LSA', 'IU.LSZ', 'IU.LVC', 'II.LVZ', 'IU.MA2',
+     'IU.MACI', 'IU.MAJO', 'IU.MAKZ', 'II.MBAR', 'IU.MBWA', 'IC.MDJ', 'IU.MIDW', 'II.MSEY', 'IU.MSKU',
+     'II.MSVF', 'CU.MTDJ', 'II.NIL', 'II.NNA', 'II.NRIL', 'IU.NWAO', 'II.OBN', 'IU.OTAV', 'IU.PAB', 'II.PALK',
+     'IU.PAYG', 'IU.PET', 'II.PFO', 'GT.PLCA', 'IU.PMG', 'IU.PMSA', 'IU.POHA', 'IU.PTCN', 'IU.PTGA', 'IC.QIZ',
+     'IU.QSPA', 'IU.RAO', 'IU.RAR', 'II.RAYN', 'IU.RCBR', 'II.RPN', 'IU.RSSD', 'II.SACV', 'IU.SAML',  'IU.SBA',
+     'CU.SDDR', 'IU.SDV', 'IU.SFJD', 'II.SHEL', 'IU.SJG', 'IU.SLBS', 'IU.SNZO', 'IC.SSE', 'IU.SSPA', 'II.SUR',
+     'IU.TARA', 'IU.TATO', 'II.TAU', 'IU.TEIG', 'CU.TGUH', 'IU.TIXI', 'II.TLY', 'IU.TRIS', 'IU.TRQA', 'IU.TSUM',
+     'IU.TUC', 'IU.ULN', 'GT.VNDA', 'IU.WAKE', 'IU.WCI', 'IC.WMQ', 'II.WRAB', 'IU.WVT', 'IC.XAN', 'IU.XMAS',
+     'IU.YAK', 'IU.YSS']
 # -------------------------------------------------------
 
 intro = 20*'-'
@@ -163,9 +182,6 @@ else:
     if plot_scatter:
         uf.ffpscatter(all_passed_staev, all_events=True)
 
-    import py2mat_mod
-    py2mat_mod.py2mat(all_passed_staev, 'dispersion_all_passed_staev', 'dispersion_all_passed_staev')
-
     if plot_mean:
         all_dt_mean = []
         all_a_mean = []
@@ -183,7 +199,9 @@ else:
                     all_tt_single_tmp.append(all_passed_staev[j][i][k][2])
             all_tt_single.append(all_tt_single_tmp)
         #### FINISH A TEST
-        
+
+        all_GSN_lat = []
+        all_GSN_lon = []
         for i in range(len(all_passed_staev)):
             per, dt_mean, a_mean, flag = uf.stamean(all_passed_staev[i])
             if flag:
@@ -192,6 +210,10 @@ else:
                 for sta in all_passed_staev[i][0]:
                     all_lat.append(sta[0])
                     all_lon.append(sta[1])
+                    station_id = '%s.%s' % (sta[7].split('.')[0], sta[7].split('.')[1])
+                    if station_id in GSN_stations:
+                        all_GSN_lat.append(sta[0])
+                        all_GSN_lon.append(sta[1])
         #uf.allffplotmean(per, all_dt_mean)
         uf.meanall_ffplot(per, all_dt_mean, all_a_mean, all_tt_single)
 
@@ -205,7 +227,10 @@ else:
         m.drawmeridians(np.arange(0., 420., 60.))
         m.drawmapboundary()
         x, y = m(all_lon, all_lat)
-        m.scatter(x, y, c='red', edgecolor='none', zorder=20, marker='v', s=40)
+        m.scatter(x, y, c='blue', edgecolor='none', zorder=20, marker='v', s=40)
+
+        x_gsn, y_gsn = m(all_GSN_lon, all_GSN_lat)
+        m.scatter(x_gsn, y_gsn, c='red', edgecolor='none', zorder=40, marker='v', s=40)
         plt.show()
 
 raw_input('Press enter to quit!')
