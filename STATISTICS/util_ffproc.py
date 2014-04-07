@@ -83,7 +83,7 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
                 np_median = np.median(all_dt_event)
 
             #np_median = 0
-			print 'MEDIAN: %s ... length GSN: %s' % (np_median, len(dt_GSN))
+            print 'MEDIAN: %s ... length GSN: %s' % (np_median, len(dt_GSN))
 
             all_dt_median = all_dt_event - np_median
             all_da_median = all_da_event - np.median(all_da_event)
