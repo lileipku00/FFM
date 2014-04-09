@@ -23,7 +23,7 @@ import os
 
 # ------------------- INPUT -----------------------------
 # min and max desired magnitude:
-min_mag = 10.0
+min_mag = 6.0
 max_mag = 10.0
 
 # rectangular window to select events:
@@ -42,12 +42,12 @@ max_lon = 180.0
 # Program searches for those events that they are within a range (azimuth_error) from that specific point
 center_lat = 40.
 center_lon = -115.
-req_azimuth = 238.18
-azimuth_error = 15.0
+req_azimuth = 312.37
+azimuth_error = 3.0
 
 # min and maximum distance to the center point
-min_dist = 100
-max_dist = 140
+min_dist = 32
+max_dist = 90
 
 min_date = 2008
 max_date = 2014
@@ -56,8 +56,8 @@ plot_ev = True
 center_lat_plot = -0.72+20
 center_lon_plot = 99.867+70
 
-center_lat_gc = -16.30800
-center_lon_gc = -177.7320
+center_lat_gc = -0.72
+center_lon_gc = 99.867
 # -------------------------------------------------------
 
 fio_pdata_events = open(os.path.join(os.path.curdir, 'results', 'pdata_events.txt'), 'r')
