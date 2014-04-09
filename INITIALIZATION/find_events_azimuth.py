@@ -154,6 +154,7 @@ if plot_ev:
     b.set_zorder(10)
     ax.add_collection(b)
 
+    m.drawgreatcircle(155.0090, 50.83300, center_lon, center_lat, linewidth=3, c='r')
     m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3, c='b')
 
     # EVENT-3
@@ -177,6 +178,7 @@ if plot_ev:
     b.set_zorder(10)
     ax.add_collection(b)
 
+    m.drawgreatcircle(-155.0730, 19.34900, center_lon, center_lat, linewidth=3, c='r')
     m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3, c='b')
 
     x, y = m(center_lon, center_lat)
