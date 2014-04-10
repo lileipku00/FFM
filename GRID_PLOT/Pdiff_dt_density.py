@@ -29,7 +29,7 @@ import sys
 import time
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+processed_events_add = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/PROCESSING/ECORR'
 band = 'band01'
 #band = 'BB'
 xcorr_limit = 0.8
@@ -40,7 +40,7 @@ parts = 80
 #npts = 180
 #parts = 1
 projection = 'robin'
-ray_coverage = True
+ray_coverage = False
 read_only = False
 
 remove_GSN_median = True
