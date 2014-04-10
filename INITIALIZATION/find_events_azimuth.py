@@ -23,7 +23,7 @@ import os
 
 # ------------------- INPUT -----------------------------
 # min and max desired magnitude:
-min_mag = 6.0
+min_mag = 10.0
 max_mag = 10.0
 
 # rectangular window to select events:
@@ -53,8 +53,8 @@ min_date = 2008
 max_date = 2014
 
 plot_ev = True
-center_lat_plot = -0.72+20
-center_lon_plot = 99.867+70
+center_lat_plot = -0.72+40
+center_lon_plot = 99.867+60
 
 center_lat_gc = -0.72
 center_lon_gc = 99.867
@@ -157,29 +157,29 @@ if plot_ev:
     m.drawgreatcircle(155.0090, 50.83300, center_lon, center_lat, linewidth=3, c='r')
     m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3, c='b')
 
-    # EVENT-3
-    # 0742.2008.348.a,-48.90000,123.3000,2.000000,5.9,-0.115E+18,0.687E+18,-0.572E+18,-0.744E+18,0.615E+17,-0.206E+18,
-    center_lat_gc = -48.90
-    center_lon_gc = 123.30
+    ### # EVENT-3
+    ### # 0742.2008.348.a,-48.90000,123.3000,2.000000,5.9,-0.115E+18,0.687E+18,-0.572E+18,-0.744E+18,0.615E+17,-0.206E+18,
+    ### center_lat_gc = -48.90
+    ### center_lon_gc = 123.30
 
-    x, y = m(center_lon_gc, center_lat_gc)
-    focmecs = [-0.115E+18, 0.687E+18, -0.572E+18, -0.744E+18, 0.615E+17, -0.206E+18]
-    ax = plt.gca()
-    b = Beach(focmecs, xy=(x, y), width=7e5, linewidth=1, alpha=0.85, size=400)
-    b.set_zorder(10)
-    ax.add_collection(b)
+    ### x, y = m(center_lon_gc, center_lat_gc)
+    ### focmecs = [-0.115E+18, 0.687E+18, -0.572E+18, -0.744E+18, 0.615E+17, -0.206E+18]
+    ### ax = plt.gca()
+    ### b = Beach(focmecs, xy=(x, y), width=7e5, linewidth=1, alpha=0.85, size=400)
+    ### b.set_zorder(10)
+    ### ax.add_collection(b)
 
-    # EVENT-4
-    # 0613.2007.226.a,19.34900,-155.0730,8.000000,5.6,0.745E+17,-0.138E+17,-0.608E+17,0.969E+17,0.822E+17,-0.592E+17,
-    x, y = m(-155.0730, 19.34900)
-    focmecs = [0.745E+17, -0.138E+17, -0.608E+17, 0.969E+17, 0.822E+17, -0.592E+17]
-    ax = plt.gca()
-    b = Beach(focmecs, xy=(x, y), width=7e5, linewidth=1, alpha=0.85, size=400)
-    b.set_zorder(10)
-    ax.add_collection(b)
+    ### # EVENT-4
+    ### # 0613.2007.226.a,19.34900,-155.0730,8.000000,5.6,0.745E+17,-0.138E+17,-0.608E+17,0.969E+17,0.822E+17,-0.592E+17,
+    ### x, y = m(-155.0730, 19.34900)
+    ### focmecs = [0.745E+17, -0.138E+17, -0.608E+17, 0.969E+17, 0.822E+17, -0.592E+17]
+    ### ax = plt.gca()
+    ### b = Beach(focmecs, xy=(x, y), width=7e5, linewidth=1, alpha=0.85, size=400)
+    ### b.set_zorder(10)
+    ### ax.add_collection(b)
 
-    m.drawgreatcircle(-155.0730, 19.34900, center_lon, center_lat, linewidth=3, c='r')
-    m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3, c='b')
+    ### m.drawgreatcircle(-155.0730, 19.34900, center_lon, center_lat, linewidth=3, c='r')
+    ### m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3, c='b')
 
     x, y = m(center_lon, center_lat)
     m.scatter(x, y, c='r', s=600, linewidth=5, marker='x', zorder=200)
