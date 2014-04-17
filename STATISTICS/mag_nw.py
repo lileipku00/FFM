@@ -23,40 +23,56 @@ import sys
 import util_ffproc as uf 
 
 # ------------------- INPUT -----------------------------
-xcorr_limit = 0.8
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5' 
+xcorr_limit = -100
+remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+
+min_epi = 90
+max_epi = 120
 # -------------------------------------------------------
   
 # ------------------- mag_finder -----------------------------
+
+
 def mag_finder(ev_address, ev_fi):
-    '''
+    """
     find the magnitude of the event
-    '''
-    ev_name = ev_address.split('/')[-1]
+    """
+    ev_name = os.path.basename(ev_address)
     for i in range(len(ev_fi)):
         if ev_name == ev_fi[i][0]:
             mag = float(ev_fi[i][1])
             break
     return mag
 
+# ------------------- round_to --------------------------
+
+
+def round_to(n, precission):
+    """
+    rounding the numbers!
+    """
+    correction = 0.5 if n >= 0 else -0.5
+    rounded = int(n/precission+correction)*precission
+    rounded2 = round(rounded, 6)
+    return rounded2
+
 # --------------------------------------------------------------
 # ------------------- MAIN PROGRAM -----------------------------
 # --------------------------------------------------------------
 bands = sys.argv[1]
 bands = range(int(bands[0]), int(bands[-1])+1)
-band_period = {'1': 30.0,'2': 21.2,'3': 15.0,'4': 10.6,'5': 7.5,
-                '6': 5.3,'7': 3.7,'8': 2.7}
+band_period = {'1': 30.0, '2': 21.2, '3': 15.0, '4': 10.6, '5': 7.5, '6': 5.3, '7': 3.7, '8': 2.7}
 
 proc_ev_ls = glob.glob(os.path.join(remote_dir, '*.*.*.*'))
-print '%s processed events found!' %(len(proc_ev_ls))
+print '%s processed events found!' % len(proc_ev_ls)
 
-ev_fio = open('results/selected_events_all.txt')
+ev_fio = open('selected_events_all.txt')
 ev_fi = ev_fio.readlines()
 for i in range(len(ev_fi)):
     ev_fi[i] = [ev_fi[i].split(',')[0], ev_fi[i].split(',')[4]]
 
 mag_dic = {}
-for i in np.arange(5.0, 10.0, 0.1):
+for i in np.arange(5.0, 10.0, 0.5):
     mag_dic[str(i)] = [0, 0]
 
 for i in range(len(bands)):
@@ -67,48 +83,68 @@ for i in range(len(bands)):
         # [bands[i]] is defined like this because reader gets
         # list as an input
         all_staev = uf.reader(proc_ev_ls[j], [bands[i]], band_period)
-        if all_staev == []: continue
+        if not all_staev:
+            continue
+
         passed_staev = uf.filters(all_staev, [bands[i]], xcorr_limit=xcorr_limit)
-        if passed_staev[0] == []: continue
+        if not passed_staev[0]:
+            continue
+
         magni = mag_finder(proc_ev_ls[j], ev_fi)
         mag_all = np.append(mag_all, magni)
+
         ### FIND EACH EVENT WITH SPECIFIED MAGNITUDE AND THE NUMBER OF WAVEFORNS ASSOCIATED ???????
-        nw_all = np.append(nw_all, len(passed_staev[0]))
+        passed_staev_epi = []
+        for k in range(len(passed_staev[0])):
+            if min_epi <= passed_staev[0][k][6] < max_epi:
+                passed_staev_epi.append(passed_staev[0][k])
+        nw_all = np.append(nw_all, len(passed_staev_epi))
     for j in range(len(mag_all)):
         for k in mag_dic:
-            if str(int(mag_all[j]*10.)/10.) == k:
+            if str(round_to(mag_all[j], 0.5)) == k:
                 mag_dic[k][0] += nw_all[j]
                 mag_dic[k][1] += 1
                 break
+
+    mag_sta_list = []
+    for md in mag_dic:
+        mag_sta_list.append([float(md), mag_dic[md][0], mag_dic[md][1]])
+    mag_sta_list.sort()
+
+
+    import py2mat_mod
+    py2mat_mod.py2mat(mag_sta_list, 'mag_sta_%s' % bands[i], 'mag_sta_%s' % bands[i])
+
     plt.ion()
     plt.figure()
-    plt.subplot(2,1,2)
+    plt.subplot(2, 1, 2)
     for j in mag_dic:
         if mag_dic[j][1] > 0.1:
             plt.bar(left=float(j)-0.05, width=0.1, height=mag_dic[j][0]/mag_dic[j][1])
             #plt.bar(left=float(j)-0.05, width=0.1, height=mag_dic[j][0])
-    plt.xlabel('Magnitude', fontsize = 'xx-large', weight = 'bold')
-    plt.ylabel('#waveforms/#events', fontsize = 'xx-large', weight = 'bold')
-    plt.xticks(fontsize = 'xx-large', weight = 'bold')
-    plt.yticks(fontsize = 'xx-large', weight = 'bold')
+    plt.xlabel('Magnitude', fontsize='xx-large', weight='bold')
+    plt.ylabel('#waveforms/#events', fontsize='xx-large', weight='bold')
+    plt.xticks(fontsize='xx-large', weight='bold')
+    plt.yticks(fontsize='xx-large', weight='bold')
     plt.legend()
     plt.show()
 
     #plt.figure()
-    plt.subplot(2,1,1)
+    plt.subplot(2, 1, 1)
     for j in mag_dic:
         if mag_dic[j][1] > 0.1:
             plt.bar(left=float(j)-0.05, width=0.1, height=mag_dic[j][0])
-    plt.xlabel('Magnitude', fontsize = 'xx-large', weight = 'bold')
-    plt.ylabel('#waveforms', fontsize = 'xx-large', weight = 'bold')
-    plt.xticks(fontsize = 'xx-large', weight = 'bold')
-    plt.yticks(fontsize = 'xx-large', weight = 'bold')
+    plt.xlabel('Magnitude', fontsize='xx-large', weight='bold')
+    plt.ylabel('#waveforms', fontsize='xx-large', weight='bold')
+    plt.xticks(fontsize='xx-large', weight='bold')
+    plt.yticks(fontsize='xx-large', weight='bold')
     plt.legend()
     plt.show()
 
-print "Number of all events used: %s" %(len(mag_all))
+print "Number of all events used: %s" % len(mag_all)
+
 nr_all_sta = 0
 for i in range(len(nw_all)):
     nr_all_sta += nw_all[i]
-print "Number of all stations used: %s" %(nr_all_sta)
+print "Number of all stations used: %s" % nr_all_sta
 raw_input('Please press enter to exit the program!')

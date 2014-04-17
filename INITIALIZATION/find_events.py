@@ -42,8 +42,11 @@ fio_selected_events.close()
 if plot_ev:
     print 'Plotting the events!'
     m = Basemap(projection='cyl', lon_0=0.0, lat_0=0.0, resolution='c')
-    m.drawcoastlines()
-    m.fillcontinents()
+    #m.drawcoastlines()
+    #m.etopo()
+    #m.bluemarble()
+    m.shadedrelief()
+    #m.fillcontinents()
     m.drawparallels(np.arange(-90., 120., 30.))
     m.drawmeridians(np.arange(0., 420., 60.))
     m.drawmapboundary()
@@ -56,7 +59,7 @@ if plot_ev:
             focmecs = [float(evnt[5]),float(evnt[6]),float(evnt[7]),\
                         float(evnt[8]),float(evnt[9]),float(evnt[10])]
             ax = plt.gca()
-            b = Beach(focmecs, xy=(x, y), width=3, linewidth=1, alpha=0.85)
+            b = Beach(focmecs, xy=(x, y), width=4.5, linewidth=1, alpha=0.85)
             b.set_zorder(10)
             ax.add_collection(b)
         except Exception, e:

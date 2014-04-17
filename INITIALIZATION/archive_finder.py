@@ -6,7 +6,7 @@ syn_arch = glob.glob(os.path.join(syn_arch_add, '*.*.*.*'))
 for i in range(len(syn_arch)):
     syn_arch[i] = syn_arch[i].split('/')[-1]
 
-selected_event = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/results/selected_events.txt'
+selected_event = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/INITIALIZATION/results/selected_events.txt'
 fio_selected_event = open(selected_event, 'r')
 fi_selected_event = fio_selected_event.readlines()
 fio_selected_event.close()

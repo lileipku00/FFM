@@ -29,7 +29,7 @@ import sys
 import time
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/PROCESSING/ECORR'
+processed_events_add = '/import/neptun-dunkles/hosseini/PROCESSING/ECORR'
 band = 'band01'
 #band = 'BB'
 xcorr_limit = 0.8
