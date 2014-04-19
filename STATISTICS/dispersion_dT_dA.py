@@ -35,7 +35,7 @@ just_high_cc = xcorr_limit
 remove_GSN_median = True
 
 plot_mean = True
-plot_scatter = False
+plot_scatter = True
 plot_sta = True
 
 # ----- IF YOU DO NOT KNOW WHAT YOU ARE DOING, DO NOT CHANGE THE FOLLOWING INPUTS -------

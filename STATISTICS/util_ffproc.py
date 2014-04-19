@@ -82,7 +82,7 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
             else:
                 np_median = np.median(all_dt_event)
 
-            #np_median = 0
+            np_median = 0
             print 'MEDIAN: %s ... length GSN: %s' % (np_median, len(dt_GSN))
 
             all_dt_median = all_dt_event - np_median
@@ -105,6 +105,25 @@ def filters(all_staev, bands, xcorr_limit=False, all_stations=True):
     """
     filters all station-event pairs based on inputs
     """
+
+    GSN_stations = \
+        ['II.AAK', 'II.ABKT', 'II.ABPO', 'IU.ADK', 'IU.AFI', 'II.ALE', 'IU.ANMO', 'IU.ANTO', 'CU.ANWB', 'II.ARU',
+         'II.ASCN', 'CU.BBGH', 'IU.BBSR', 'CU.BCIP', 'GT.BDFB', 'II.BFO', 'GT.BGCA', 'IU.BILL', 'IC.BJT', 'II.BORG',
+         'GT.BOSA', 'II.BRVK', 'IU.CASY', 'IU.CCM', 'IU.CHTO', 'II.CMLA', 'II.COCO', 'IU.COLA', 'IU.COR',
+         'GT.CPUP', 'IU.CTAO', 'IU.DAV',  'GT.DBIC', 'II.DGAR', 'IU.DWPF', 'II.EFI', 'IC.ENH', 'II.ERM', 'II.ESK',
+         'II.FFC', 'IU.FUNA', 'IU.FURI', 'IU.GNI', 'IU.GRFO', 'CU.GRGR', 'CU.GRTK', 'CU.GTBY', 'IU.GUMO', 'IC.HIA',
+         'IU.HKT', 'IU.HNR', 'II.HOPE', 'IU.HRV', 'IU.INCN', 'IU.JOHN', 'II.JTS', 'II.KAPI', 'IU.KBL', 'IU.KBS',
+         'II.KDAK', 'IU.KEV', 'IU.KIEV', 'IU.KIP', 'II.KIV', 'IU.KMBO', 'IC.KMI', 'IU.KNTN', 'IU.KONO', 'IU.KOWA',
+         'II.KURK', 'II.KWAJ', 'GT.LBTB', 'IU.LCO', 'GT.LPAZ', 'IC.LSA', 'IU.LSZ', 'IU.LVC', 'II.LVZ', 'IU.MA2',
+         'IU.MACI', 'IU.MAJO', 'IU.MAKZ', 'II.MBAR', 'IU.MBWA', 'IC.MDJ', 'IU.MIDW', 'II.MSEY', 'IU.MSKU',
+         'II.MSVF', 'CU.MTDJ', 'II.NIL', 'II.NNA', 'II.NRIL', 'IU.NWAO', 'II.OBN', 'IU.OTAV', 'IU.PAB', 'II.PALK',
+         'IU.PAYG', 'IU.PET', 'II.PFO', 'GT.PLCA', 'IU.PMG', 'IU.PMSA', 'IU.POHA', 'IU.PTCN', 'IU.PTGA', 'IC.QIZ',
+         'IU.QSPA', 'IU.RAO', 'IU.RAR', 'II.RAYN', 'IU.RCBR', 'II.RPN', 'IU.RSSD', 'II.SACV', 'IU.SAML',  'IU.SBA',
+         'CU.SDDR', 'IU.SDV', 'IU.SFJD', 'II.SHEL', 'IU.SJG', 'IU.SLBS', 'IU.SNZO', 'IC.SSE', 'IU.SSPA', 'II.SUR',
+         'IU.TARA', 'IU.TATO', 'II.TAU', 'IU.TEIG', 'CU.TGUH', 'IU.TIXI', 'II.TLY', 'IU.TRIS', 'IU.TRQA', 'IU.TSUM',
+         'IU.TUC', 'IU.ULN', 'GT.VNDA', 'IU.WAKE', 'IU.WCI', 'IC.WMQ', 'II.WRAB', 'IU.WVT', 'IC.XAN', 'IU.XMAS',
+         'IU.YAK', 'IU.YSS']
+
     indx_failed = []
     for i in range(len(all_staev[0])):
         flag = True
@@ -115,9 +134,10 @@ def filters(all_staev, bands, xcorr_limit=False, all_stations=True):
             if all_staev[j][i][4] < xcorr_limit:
                 flag = False
                 break
-            #if not all_stations:
-            #    if not all_staev[j][i][6].split('.')[0] in target_network:
-            #            flag = 'F'
+            station_id = '%s.%s' % (all_staev[j][i][7].split('.')[0], all_staev[j][i][7].split('.')[1])
+            if not station_id in GSN_stations:
+                flag = False
+                break
         if not flag:
             indx_failed.append(i)
 
