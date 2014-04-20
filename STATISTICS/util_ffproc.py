@@ -82,7 +82,7 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
             else:
                 np_median = np.median(all_dt_event)
 
-            np_median = 0
+            #np_median = 0
             print 'MEDIAN: %s ... length GSN: %s' % (np_median, len(dt_GSN))
 
             all_dt_median = all_dt_event - np_median
@@ -134,10 +134,11 @@ def filters(all_staev, bands, xcorr_limit=False, all_stations=True):
             if all_staev[j][i][4] < xcorr_limit:
                 flag = False
                 break
-            station_id = '%s.%s' % (all_staev[j][i][7].split('.')[0], all_staev[j][i][7].split('.')[1])
-            if not station_id in GSN_stations:
-                flag = False
-                break
+            #station_id = '%s.%s' % (all_staev[j][i][7].split('.')[0], all_staev[j][i][7].split('.')[1])
+            #if not station_id in GSN_stations:
+            #    print '%s not in GSN stations' % station_id
+            #    flag = False
+            #    break
         if not flag:
             indx_failed.append(i)
 

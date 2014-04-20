@@ -53,11 +53,14 @@ min_date = 2008
 max_date = 2014
 
 plot_ev = True
+# Center point to plot the "nsper" projection
 center_lat_plot = -0.72+40
 center_lon_plot = 99.867+60
 
-center_lat_gc = -0.72
-center_lon_gc = 99.867
+# First lat and lon to plot the great circle distance
+# This is usually the coordinates of the event that has been manually picked
+event_lat_gc = -0.72
+event_lon_gc = 99.867
 # -------------------------------------------------------
 
 fio_pdata_events = open(os.path.join(os.path.curdir, 'results', 'pdata_events.txt'), 'r')
@@ -109,7 +112,7 @@ if plot_ev:
     m.drawparallels(np.arange(-90., 120., 30.))
     m.drawmeridians(np.arange(0., 420., 60.))
     m.drawmapboundary()
-    #m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3)
+    #m.drawgreatcircle(event_lon_gc, event_lat_gc, center_lon, center_lat, linewidth=3)
 
     fio_selected_events = open(os.path.join(os.path.curdir, 'results', 'selected_events.txt'), 'r')
     selected_events = fio_selected_events.readlines()
@@ -135,10 +138,10 @@ if plot_ev:
 
     # EVENT-1:
     # 0274.2009.273.a,-0.7200000,99.86700,82.00000,7.5,0.163E+21,-0.148E+20,-0.148E+21,0.349E+20,-0.397E+20,-0.157E+21
-    center_lat_gc = -0.7200000
-    center_lon_gc = 99.86700
+    event_lat_gc = -0.7200000
+    event_lon_gc = 99.86700
 
-    x, y = m(center_lon_gc, center_lat_gc)
+    x, y = m(event_lon_gc, event_lat_gc)
     focmecs = [0.163E+21, -0.148E+20, -0.148E+21, 0.349E+20, -0.397E+20, -0.157E+21]
     ax = plt.gca()
     b = Beach(focmecs, xy=(x, y), width=7e5, linewidth=1, alpha=0.85, size=400)
@@ -155,14 +158,14 @@ if plot_ev:
     ax.add_collection(b)
 
     m.drawgreatcircle(155.0090, 50.83300, center_lon, center_lat, linewidth=3, c='r')
-    m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3, c='b')
+    m.drawgreatcircle(event_lon_gc, event_lat_gc, center_lon, center_lat, linewidth=3, c='b')
 
     ### # EVENT-3
     ### # 0742.2008.348.a,-48.90000,123.3000,2.000000,5.9,-0.115E+18,0.687E+18,-0.572E+18,-0.744E+18,0.615E+17,-0.206E+18,
-    ### center_lat_gc = -48.90
-    ### center_lon_gc = 123.30
+    ### event_lat_gc = -48.90
+    ### event_lon_gc = 123.30
 
-    ### x, y = m(center_lon_gc, center_lat_gc)
+    ### x, y = m(event_lon_gc, event_lat_gc)
     ### focmecs = [-0.115E+18, 0.687E+18, -0.572E+18, -0.744E+18, 0.615E+17, -0.206E+18]
     ### ax = plt.gca()
     ### b = Beach(focmecs, xy=(x, y), width=7e5, linewidth=1, alpha=0.85, size=400)
@@ -179,7 +182,7 @@ if plot_ev:
     ### ax.add_collection(b)
 
     ### m.drawgreatcircle(-155.0730, 19.34900, center_lon, center_lat, linewidth=3, c='r')
-    ### m.drawgreatcircle(center_lon_gc, center_lat_gc, center_lon, center_lat, linewidth=3, c='b')
+    ### m.drawgreatcircle(event_lon_gc, event_lat_gc, center_lon, center_lat, linewidth=3, c='b')
 
     x, y = m(center_lon, center_lat)
     m.scatter(x, y, c='r', s=600, linewidth=5, marker='x', zorder=200)
