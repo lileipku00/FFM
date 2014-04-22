@@ -99,7 +99,7 @@ print '------------------------'
 print '\nPlotting Events...'
 
 m = Basemap(projection='cyl', lon_0=0.0, lat_0=0.0, resolution='c')
-m.drawcoastlines()
+#m.drawcoastlines()
 m.fillcontinents()
 m.drawparallels(np.arange(-90., 120., 30.))
 m.drawmeridians(np.arange(0., 420., 60.))
@@ -113,7 +113,7 @@ for i in range(len(events_info)):
         focmecs = [float(events_info[i][2]), float(events_info[i][3]), float(events_info[i][4]),
                     float(events_info[i][5]), float(events_info[i][6]), float(events_info[i][7])]
         ax = plt.gca()
-        b = Beach(focmecs, xy=(x, y), width=3, linewidth=1, alpha=0.85)
+        b = Beach(focmecs, xy=(x, y), width=4.5, linewidth=1, alpha=0.85)
         b.set_zorder(10)
         ax.add_collection(b)
     except Exception, e:

@@ -23,11 +23,12 @@ import sys
 import util_ffproc as uf 
 
 # ------------------- INPUT -----------------------------
-xcorr_limit = -100
+xcorr_limit = 0.8
+#remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5_32_100'
 remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
 
-min_epi = 90
-max_epi = 120
+min_epi = 120
+max_epi = 180
 # -------------------------------------------------------
   
 # ------------------- mag_finder -----------------------------
