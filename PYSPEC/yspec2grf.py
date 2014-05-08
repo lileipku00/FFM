@@ -191,12 +191,13 @@ for i in range(0, len(all_files)):
 
 print '\nMove the data to data folder!'
 data_dest = sys.argv[6]
-shutil.rmtree(data_dest)
-os.mkdir(data_dest)
+#shutil.rmtree(data_dest)
+#os.mkdir(data_dest)
 if req_phase in ['P', 'Pdiff']:
     phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHZ'))
     for fi in phase_ls:
-        shutil.move(fi, data_dest)
+        shutil.copy(fi, data_dest)
+        os.remove(fi)
 elif req_phase in ['SH']:
     print '\nit just moves the BHE and BHN!'
     phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHE'))
