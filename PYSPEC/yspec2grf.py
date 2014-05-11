@@ -16,14 +16,10 @@
 # Required Python and Obspy modules will be imported in this part.
 import glob
 import numpy as np
-from obspy.core import read, Trace, Stream, UTCDateTime
-from obspy.core.util import gps2DistAzimuth
-from obspy.core.util import kilometer2degrees
-from obspy.taup.taup import getTravelTimes
+from obspy.core import read, Trace, UTCDateTime
 import pprocess
 import sys, os
 import shutil
-import subprocess
 
 '''
 sys.argv[1]: path to the newly calculated YSPEC in the gallery
@@ -33,6 +29,7 @@ sys.argv[4]: real station names file
 sys.argv[5]: phase name
 sys.argv[6]: data folder (where the results should move for FFM) 
 sys.argv[7]: travel time obtained from MATLAB code
+sys.argv[8]: solver
 '''
 
 t = UTCDateTime(sys.argv[3])
@@ -42,18 +39,20 @@ t = UTCDateTime(sys.argv[3])
 ########################################################################
     
 ###################### epi_dist ###################################
-def epi_dist(tr, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
+
+
+def epi_dist(tr, req_phase='Pdiff', tb=20, ta=100, model='iasp91', forward_code='yspec'):
     """
-    returns the O, A, B, E, GCARC for SAC headers
-    this will be done directly by reading the a from SAC header!
-    this has been done to keep everything compatible with
-    Karin's code
-    """    
+    returns O, A, B, E, GCARC for SAC headers
+    this will be done directly by reading A from SAC header!
+    It should be completely compatible with WKBJ method
+    """
+    if not forward_code == 'yspec':
+        print 'O, B and E headers should be set correctly!'
     if not tr.stats.sac.a == -12345.0:
         t_phase = tr.stats.sac.a
         phase_exist = 'Y'
-        tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, 
-                tr.stats.starttime + t_phase + ta)
+        tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, tr.stats.starttime + t_phase + ta)
         # XXX O should be zero? for the moment it could be zero
         # since YSPEC seismograms are all start at 0 but not for AXISEM
         O = 0
@@ -65,16 +64,21 @@ def epi_dist(tr, req_phase='Pdiff', tb=10, ta=25, model='iasp91'):
     else:
         phase_exist = 'N'
         tr_sliced = 0 
-        O = 0; A = 0; B = 0; E = 0; GCARC = 0
+        O = 0
+        A = 0
+        B = 0
+        E = 0
+        GCARC = 0
     
     return (phase_exist, O, A, B, E, GCARC, tr_sliced)
 
-
 ###################### y2m ###################################
+
+
 def y2m(file, path):
-    '''
-    yspec to SAC format
-    '''
+    """
+    yspec outputs to SAC format
+    """
     stationID = int(file.split('.')[-1])
     chans = ['BHZ', 'BHN', 'BHE']
     dat = np.loadtxt(file)
@@ -87,25 +91,24 @@ def y2m(file, path):
                  'npts': npts,
                  'sampling_rate': (npts - 1.)/(dat[-1,0] - dat[0,0]),
                  'starttime': t,
-                 'mseed' : {'dataquality': 'D'}}
+                 'mseed': {'dataquality': 'D'}}
         traces = Trace(data=dat[:,1+i], header=stats)
-        traces.write(os.path.join(path, 'SAC', 'dis.%s.%s.%s' 
-                        %(traces.stats.station, traces.stats.location, 
-                        traces.stats.channel)), format = 'SAC')
+        traces.write(os.path.join(path, 'SAC', 'dis.%s.%s.%s' % (traces.stats.station, traces.stats.location,
+                                                                 traces.stats.channel)), format='SAC')
 
 
 ########################################################################
 ############################# Main Program #############################
 ########################################################################
 
-print '\nConvert YSPEC output to SAC files!'
+print '\nConvert YSPEC outputs to SAC files!'
 path1 = sys.argv[1]
 if not os.path.isdir(os.path.join(path1, 'SAC')):
     os.mkdir(os.path.join(path1, 'SAC'))
     all_files = glob.glob(os.path.join(path1, 'yspec.out.*'))
     parallel_results = pprocess.Map(limit=int(sys.argv[2]), reuse=1)
     parallel_job = parallel_results.manage(pprocess.MakeReusable(y2m))
-    for i in range(0, len(all_files)):
+    for i in range(len(all_files)):
         parallel_job(all_files[i], path1)
     parallel_results.finish()
 else:
@@ -120,31 +123,32 @@ if not os.path.isdir(os.path.join(path1, 'SAC_realName')):
     os.mkdir(os.path.join(path1, 'SAC_realName'))
     sta_name_open = open(path2)
     sta_name = sta_name_open.readlines()
-    for i in range(0, len(sta_name)):
+    for i in range(len(sta_name)):
         sta_name[i] = sta_name[i].split(',')
-        for j in range(0, len(sta_name[i])):
+        for j in range(len(sta_name[i])):
             sta_name[i][j] = sta_name[i][j].strip()
-    for i in range(0, len(sta_name)):
+    for i in range(len(sta_name)):
         for chan in ['BHE', 'BHN', 'BHZ']:
             tr = read(os.path.join(path1, 'SAC', 'dis.RS' + '%02d' % (i+1) + '..' + chan))[0]
-            tr.write(os.path.join(path1, 'SAC_realName', 'grf.' + sta_name[i][0] + '.' + \
-                sta_name[i][1] + '.' + sta_name[i][2] + '.x00.' + chan), format='SAC')
-            tr_new=read(os.path.join(path1, 'SAC_realName', 'grf.' + sta_name[i][0] + '.' + \
-                sta_name[i][1] + '.' + sta_name[i][2] + '.x00.' + chan))[0]
-            tr_new.stats.network=sta_name[i][0]
-            tr_new.stats.station=sta_name[i][1]
-            tr_new.stats.location=sta_name[i][2]
-            tr_new.stats.channel=chan
-            tr_new.stats.sac.stla=float(sta_name[i][5])
-            tr_new.stats.sac.stlo=float(sta_name[i][6])
-            tr_new.stats.sac.stel=float(sta_name[i][7])
-            tr_new.stats.sac.stdp=float(sta_name[i][8])
+            tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name[i][0], sta_name[i][1],
+                                                                                  sta_name[i][2], chan)), format='SAC')
+            tr_new = read(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name[i][0], sta_name[i][1],
+                                                                                       sta_name[i][2], chan)))[0]
+            tr_new.stats.network = sta_name[i][0]
+            tr_new.stats.station = sta_name[i][1]
+            tr_new.stats.location = sta_name[i][2]
+            tr_new.stats.channel = chan
+            tr_new.stats.sac.stla = float(sta_name[i][5])
+            tr_new.stats.sac.stlo = float(sta_name[i][6])
+            tr_new.stats.sac.stel = float(sta_name[i][7])
+            tr_new.stats.sac.stdp = float(sta_name[i][8])
             
-            tr_new.stats.sac.evla=float(sta_name[i][9])
-            tr_new.stats.sac.evlo=float(sta_name[i][10])
-            tr_new.stats.sac.evdp=float(sta_name[i][11])
-            tr_new.write(os.path.join(path1, 'SAC_realName', 'grf.' + sta_name[i][0] + '.' + \
-                sta_name[i][1] + '.' + sta_name[i][2] + '.x00.' + chan), format='SAC')
+            tr_new.stats.sac.evla = float(sta_name[i][9])
+            tr_new.stats.sac.evlo = float(sta_name[i][10])
+            tr_new.stats.sac.evdp = float(sta_name[i][11])
+            tr_new.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name[i][0], sta_name[i][1],
+                                                                                      sta_name[i][2], chan)),
+                         format='SAC')
 else:
     print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC_realName')
@@ -156,43 +160,45 @@ for _i in xrange(len(fi_ttime)):
     fi_ttime[_i] = fi_ttime[_i].split(',')[:-1]
 for _i in xrange(len(fi_ttime)):
     try:
-        tr=read(os.path.join(path1, 'SAC_realName', 'grf.' + fi_ttime[_i][0] + '.' +
-                fi_ttime[_i][1] + '.' + fi_ttime[_i][2] + '.x00.' + fi_ttime[_i][3]))[0]
+        tr = read(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime[_i][0], fi_ttime[_i][1],
+                                                                               fi_ttime[_i][2], fi_ttime[_i][3])))[0]
         tr.stats.sac.gcarc = float(fi_ttime[_i][4])
         if not fi_ttime[_i][5] == 'NaN':
             tr.stats.sac.a = float(fi_ttime[_i][5])
         else:
             tr.stats.sac.a = -12345.0
-        tr.write(os.path.join(path1, 'SAC_realName', 'grf.' + fi_ttime[_i][0] + '.' +
-                fi_ttime[_i][1] + '.' + fi_ttime[_i][2] + '.x00.' + fi_ttime[_i][3]), 
-                format='SAC')
+        tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime[_i][0], fi_ttime[_i][1],
+                                                                              fi_ttime[_i][2], fi_ttime[_i][3])),
+                 format='SAC')
     except Exception, e:
-        print e
+        print 'ERROR: %s' % e
 
 req_phase = sys.argv[5]
-print '\nCutting Time-Window around %s' %req_phase
-print '\nWARNING: tb=20, ta=100 and they are hard coded!'
+forward_code = sys.argv[8]
+print '\nCutting Time-Window around %s' % req_phase
+print '\nWARNING: tb=20, ta=100 (hard coded!)'
 if not os.path.isdir(os.path.join(path1, 'grf_cut')):
     os.mkdir(os.path.join(path1, 'grf_cut'))
 
 all_files = glob.glob(os.path.join(path1, 'SAC_realName', '*.*.*'))
-for i in range(0, len(all_files)):
+for i in range(len(all_files)):
     tr = read(os.path.join(all_files[i]))[0]
-    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=20, ta=100)
+    (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=20, ta=100,
+                                                          forward_code=forward_code)
     if phase_flag == 'Y':
         tr_sliced.stats.sac.o = O
         #tr_sliced.stats.sac.a = A
         tr_sliced.stats.sac.b = B
         tr_sliced.stats.sac.e = E
         #tr_sliced.stats.sac.gcarc = GCARC
-        tr_sliced.write(os.path.join(path1, 'grf_cut', 'grf.' + tr_sliced.stats.network + '.' +
-            tr_sliced.stats.station + '.' + tr_sliced.stats.location + '.x00.' + 
-            tr_sliced.stats.channel), format='SAC')
+        tr_sliced.write(os.path.join(path1, 'grf_cut', 'grf.%s.%s.%s.x00.%s' % (tr_sliced.stats.network,
+                                                                                tr_sliced.stats.station,
+                                                                                tr_sliced.stats.location,
+                                                                                tr_sliced.stats.channel)),
+                        format='SAC')
 
 print '\nMove the data to data folder!'
 data_dest = sys.argv[6]
-#shutil.rmtree(data_dest)
-#os.mkdir(data_dest)
 if req_phase in ['P', 'Pdiff']:
     phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHZ'))
     for fi in phase_ls:
@@ -203,7 +209,14 @@ elif req_phase in ['SH']:
     phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHE'))
     phase_ls.append(glob.glob(os.path.join(path1, 'grf_cut', '*.BHN')))
     for fi in phase_ls:
-        shutil.move(fi, data_dest)
+        shutil.copy(fi, data_dest)
+        os.remove(fi)
+
+
+
+
+
+
 
 
 # TRASH:
@@ -257,5 +270,3 @@ elif req_phase in ['SH']:
 #    phase_exist = 'N'
 #    tr_sliced = 0 
 #    O = 0; A = 0; B = 0; E = 0; GCARC = 0
-
-

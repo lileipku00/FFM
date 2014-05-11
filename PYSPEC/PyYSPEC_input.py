@@ -30,7 +30,7 @@ sys.argv[1]: path to yspec infiles/yspec directory
 try:
     print 'input:\n%s' % sys.argv[1]
 except Exception, e:
-    sys.exit('usage: python PyYSPEC_input.py <path/to/yspec_infiles>\nERROR: %s') % e
+    sys.exit('usage: python PyYSPEC_input.py <path/to/yspec_infiles>\nERROR: %s' % e)
 
 indir = sys.argv[1]
 create_source_inp(indir=indir)
