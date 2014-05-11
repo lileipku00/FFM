@@ -1,41 +1,29 @@
 CHECKED Python files
 --------------------
-1. Pdiff_dt_density.py
-2. map_staev.py
+01. Pdiff_dt_density.py
+02. map_staev.py
 
-3. statistics.py
-4. nxcorr_epidist.py
-5. plot_dT_dA.py --> dispersion_dT_dA.py
-6. util_ffproc.py
+03. statistics.py
+04. nxcorr_epidist.py
+05. plot_dT_dA.py --> dispersion_dT_dA.py
+06. util_ffproc.py
+
+07. PyYSPEC.py
+08. PyYSPEC_input.py
+09. yspec2grf.py
+10. util_PyYSPEC.py
 
 NOT CHECKED
 -----------
-1. util_plot_dT.py
-2. mag_nw.py
-3. bin_events.py
-4. epi_ffm_plot.py
-5. ffm_plot.py
-
-NOT IMPORTANT (FFM paper)
-------------------------
-1. archive_finder.py
-2. find_events.py
-3. create_events_file.py
-4. updated_processed_finder.py
-
-5. ffm_to_ascii.py
-
-6. P_Pdiff_dt_density.py
-7. P_dt_density.py
-8. Filter_Test_Pdiff_dt_density.py
-9. TEST_dt_density.py
-
-10. PyYSPEC.py
-11. PyYSPEC_input.py
-12. yspec2grf.py
-13. util_PyYSPEC.py
-
-DEPRICATED
-----------
-1. grid_plot.py
-2. map_dt.py
+* util_plot_dT.py
+* mag_nw.py
+* bin_events.py
+* epi_ffm_plot.py
+* ffm_plot.py
+*
+* archive_finder.py
+* find_events.py
+* create_events_file.py
+* updated_processed_finder.py
+*
+* ffm_to_ascii.py
