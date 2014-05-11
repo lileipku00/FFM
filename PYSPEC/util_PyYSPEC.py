@@ -15,22 +15,20 @@
 
 # Required Python modules will be imported in this part.
 import os
-import sys
 import subprocess
 
 
 #--------------------- create_source_inp -------------------------------
 def create_source_inp(indir):
-    '''
+    """
     Create source and yspec.in files
-    '''
+    """
     fio_source = open(os.path.join(indir, 'in.yspec.source'))
     fi_source = fio_source.readlines()
     fio_source.close()
     evla, evlo, evdp = fi_source[0].split('\n')[0].split()
     mrr, mtt, mpp, mrt, mrp, mtp = fi_source[1].split('\n')[0].split()
-    evyear, evmon, evday, evhour, evmin, evsec = \
-        fi_source[3].split('\n')[0].split()
+    evyear, evmon, evday, evhour, evmin, evsec = fi_source[3].split('\n')[0].split()
 
     fio_inv = open(os.path.join(indir, 'SeismogramInventory'))
     fi_inv = fio_inv.readlines()
@@ -46,9 +44,8 @@ def create_source_inp(indir):
     fio_sta_yspec = open(os.path.join(indir, 'sta_yspec'), 'w')
     for _i in xrange(len(sta_info)):
         if not sta_info[_i] == []:
-            msg = ','.join(sta_info[_i][0:3]) + ',x00,' + \
-                    ','.join(sta_info[_i][3:9]) + ',' + \
-                    ','.join([evla, evlo, evdp]) + ',\n'
+            msg = ','.join(sta_info[_i][0:3]) + ',x00,' + ','.join(sta_info[_i][3:9]) + ',' + \
+                  ','.join([evla, evlo, evdp]) + ',\n'
             fio_sta_yspec.writelines(msg)
         else:
             del_index.append(_i)
@@ -131,9 +128,9 @@ def create_source_inp(indir):
 
 #--------------------- run_yspec ------------------------------------------
 def run_yspec(indir_submit, yspec_inp, num_proc, indir_output):
-    '''
+    """
     run yspec
-    '''
+    """
     current_dir = os.getcwd()
     os.chdir(os.path.join(indir_submit))
     subprocess.check_call(['./submit.sh', yspec_inp, num_proc, '-o', indir_output])

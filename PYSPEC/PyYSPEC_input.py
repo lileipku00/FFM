@@ -19,21 +19,18 @@
 
 # Added this line for python 2.5 compatibility
 from __future__ import with_statement
-import filecmp
-import sys, os
-import shutil
+import sys
 
 from util_PyYSPEC import *
 
-'''
+"""
 sys.argv[1]: path to yspec infiles/yspec directory
-sys.argv[2]: path to bin directory of yspec
-sys.argv[3]: path to yspec input file (yspec.in) in infiles/yspec
-sys.argv[4]: number of processes
-sys.argv[5]: path to YSPEC gallery (YSPEC_SYN_GALLERY)
-'''
+"""
 
-try: print 'input:\n%s' %(sys.argv[1])
-except: sys.exit('usage: python PyYSPEC_input.py <path/to/yspec_infiles>')
+try:
+    print 'input:\n%s' % sys.argv[1]
+except Exception, e:
+    sys.exit('usage: python PyYSPEC_input.py <path/to/yspec_infiles>\nERROR: %s') % e
+
 indir = sys.argv[1]
 create_source_inp(indir=indir)
