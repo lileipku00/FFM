@@ -18,6 +18,7 @@ import glob
 import numpy as np
 from obspy.core import read, Trace, UTCDateTime
 import pprocess
+import subprocess
 import sys, os
 import shutil
 
@@ -96,10 +97,106 @@ def y2m(file, path):
         traces.write(os.path.join(path, 'SAC', 'dis.%s.%s.%s' % (traces.stats.station, traces.stats.location,
                                                                  traces.stats.channel)), format='SAC')
 
+# ----------------- COLAT ---------------------
+def COLAT(X):
+    return 1.57079632-np.arctan([.993277*np.tan(X)])
+
+# ----------------- AZIDL ---------------------
+def AZIDL(SLAT, SLON, ELAT, ELON):
+    SLAT = float(SLAT)*np.pi/180.
+    SLON = float(SLON)*np.pi/180.
+    ELAT = float(ELAT)*np.pi/180.
+    ELON = float(ELON)*np.pi/180.
+    SCOLAT=COLAT(SLAT)
+    ECOLAT=COLAT(ELAT)
+    SC1=np.sin(SCOLAT)
+    SC2=np.cos(SCOLAT)
+    SC3=np.sin(SLON)
+    SC4=np.cos(SLON)
+    EC1=np.sin(ECOLAT)
+    EC2=np.cos(ECOLAT)
+    EC3=np.sin(ELON)
+    EC4=np.cos(ELON)
+    AE=EC1*EC4
+    BE=EC1*EC3
+    AZI1=(AE-SC3)**2+(BE+SC4)**2+EC2*EC2-2.
+    AZI2=(AE-SC2*SC4)**2+(BE-SC2*SC3)**2+(EC2+SC1)**2-2.
+
+    if AZI2 == 0.:
+        AZIS=np.pi-np.sign([AZI1])*np.pi/2.
+    else:
+        AZIS=np.arctan(complex(AZI2, AZI1))
+        CODELB=SC1*(AE*SC4+BE*SC3)+SC2*EC2
+
+    DEL=np.arccos(CODELB)
+    AS=SC1*SC4
+    BS=SC1*SC3
+    AZI1=(AS-EC3)**2+(BS+EC4)**2+SC2*SC2-2.
+    AZI2=(AS-EC2*EC4)**2+(BS-EC2*EC3)**2+(SC2+EC1)**2-2.
+
+    if AZI2 == 0.:
+        AZIE=np.pi-np.sign([AZI1])*np.pi/2.
+    else:
+        AZIE=np.arctan(complex(AZI2, AZI1))
+
+    SCOLAT=np.pi/2.-SLAT
+    ECOLAT=np.pi/2.-ELAT
+    SC1=np.sin(SCOLAT)
+    SC2=np.cos(SCOLAT)
+    EC1=np.sin(ECOLAT)
+    EC2=np.cos(ECOLAT)
+    AE=EC1*EC4
+    BE=EC1*EC3
+    DELBOD=np.arccos(SC1*(AE*SC4+BE*SC3)+SC2*EC2)
+    COSDEL=np.cos(DELBOD)
+    X1=((SC2+EC2)**2)/(1.+COSDEL)
+    X2=((SC2-EC2)**2)/(1.-COSDEL)
+    X=X1+X2
+    Y=X1-X2
+    COTDEL=1./np.tan(DELBOD)
+    SINDEL=np.sin(DELBOD)
+    DEL2=DELBOD*DELBOD
+    A=64.*DELBOD+16.*DEL2*COTDEL
+    D=48.*SINDEL+8.*DEL2/COSDEL
+    B=-(D+D)
+    E=30.*np.sin(DELBOD+DELBOD)
+    C=-30.*DELBOD-8.*DEL2*COTDEL-E/2.
+    DELS=6378.2064*(DELBOD-.000847518825*(X*DELBOD-3.*Y*SINDEL)+.0897860195E-6*(X*(A+C*X+D*Y)+Y*(B+E*Y)))
+
+    DEL_degree = DEL[0]*180./np.pi
+    return DEL_degree
+
+###################### td_modify ###################################
+
+
+def td_modify(trace, req_phase, bg_model='iasp91'):
+    """
+    Modify gcarc and phase arrival based on ellipsoidal Earth model
+    """
+    ellip_gc = AZIDL(trace.stats.sac.stla, trace.stats.sac.stlo, trace.stats.sac.evla, trace.stats.sac.evlo)
+    taup_process = subprocess.Popen(['taup_time', '-mod', bg_model, '-time', '-h', str(trace.stats.sac.evdp),
+                                     '-ph', req_phase, '-deg', str(ellip_gc)], stdout=subprocess.PIPE)
+    tt_raw = taup_process.communicate()[0]
+    tt = tt_raw.split('\n')[0].split()[-1]
+    if tt:
+        tt = float(tt)
+        if abs(tt - trace.stats.sac.a) >= 5:
+            print 'Difference between ellipsoidal and spherical arrival time exceeds 5sec in %s.%s.%s.%s, proceed!' \
+                  % (trace.stats.network, trace.stats.station, trace.stats.location, trace.stats.channel)
+        else:
+            trace.stats.sac.a = tt
+            trace.stats.sac.gcarc = ellip_gc
+    #else:
+    #    print '%s does not exist in %s.%s.%s.%s' % (req_phase, trace.stats.network, trace.stats.station,
+    #                                                trace.stats.location, trace.stats.channel)
+    return trace
 
 ########################################################################
 ############################# Main Program #############################
 ########################################################################
+
+req_phase = sys.argv[5]
+forward_code = sys.argv[8]
 
 print '\nConvert YSPEC outputs to SAC files!'
 path1 = sys.argv[1]
@@ -167,14 +264,13 @@ for _i in xrange(len(fi_ttime)):
             tr.stats.sac.a = float(fi_ttime[_i][5])
         else:
             tr.stats.sac.a = -12345.0
+        tr = td_modify(tr, req_phase)
         tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime[_i][0], fi_ttime[_i][1],
                                                                               fi_ttime[_i][2], fi_ttime[_i][3])),
                  format='SAC')
     except Exception, e:
         print 'ERROR: %s' % e
 
-req_phase = sys.argv[5]
-forward_code = sys.argv[8]
 print '\nCutting Time-Window around %s' % req_phase
 print '\nWARNING: tb=20, ta=100 (hard coded!)'
 if not os.path.isdir(os.path.join(path1, 'grf_cut')):

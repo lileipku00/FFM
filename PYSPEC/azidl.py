@@ -95,7 +95,6 @@ def AZIDL(SLAT, SLON, ELAT, ELON):
     E=30.*np.sin(DELBOD+DELBOD)
     C=-30.*DELBOD-8.*DEL2*COTDEL-E/2.
     DELS=6378.2064*(DELBOD-.000847518825*(X*DELBOD-3.*Y*SINDEL)+.0897860195E-6*(X*(A+C*X+D*Y)+Y*(B+E*Y)))
-    return DEL[0]*180./np.pi, DELS, DELBOD*180./np.pi
 
-print AZIDL(35., 0, -35, 0)
-print AZIDL(55., 0, 55, 180)
+    DEL_degree = DEL[0]*180./np.pi
+    return DEL_degree
