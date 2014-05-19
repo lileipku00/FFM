@@ -23,14 +23,14 @@ import sys
 req_phase = 'Pdiff'
 req_solver = 'yspec'
 req_processes = '1'
-add_event_info = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/results'
-add_proc_ev = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+add_event_info = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/INITIALIZATION/results'
+add_proc_ev = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180_TEST'
 add_runff = '/home/hosseini/FFINVERSION/AMPLITUDES/Programs/ffproc/FFsetup'
 # -------------------------------------------------------
 
-exit_flag = raw_input('Did you uncomment the Exit option in RunFFProcessing? (y/n)\n')
+exit_flag = raw_input('Did you set run_serial=1 in RunFFProcessing? (y/n)\n')
 if exit_flag.upper() != 'Y':
-    sys.exit('Please uncomment the flag at the very end of the file!')
+    sys.exit('Please do it first! it is at the top of the file in input section!')
 
 fio_event_info = open(os.path.join(add_event_info, 'selected_events.txt'))
 event_info = fio_event_info.readlines()

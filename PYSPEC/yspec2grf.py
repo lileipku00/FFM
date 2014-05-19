@@ -177,18 +177,25 @@ def td_modify(trace, req_phase, bg_model='iasp91'):
     taup_process = subprocess.Popen(['taup_time', '-mod', bg_model, '-time', '-h', str(trace.stats.sac.evdp),
                                      '-ph', req_phase, '-deg', str(ellip_gc)], stdout=subprocess.PIPE)
     tt_raw = taup_process.communicate()[0]
-    tt = tt_raw.split('\n')[0].split()[-1]
-    if tt:
-        tt = float(tt)
-        if abs(tt - trace.stats.sac.a) >= 5:
-            print 'Difference between ellipsoidal and spherical arrival time exceeds 5sec in %s.%s.%s.%s, proceed!' \
-                  % (trace.stats.network, trace.stats.station, trace.stats.location, trace.stats.channel)
-        else:
-            trace.stats.sac.a = tt
-            trace.stats.sac.gcarc = ellip_gc
-    #else:
-    #    print '%s does not exist in %s.%s.%s.%s' % (req_phase, trace.stats.network, trace.stats.station,
-    #                                                trace.stats.location, trace.stats.channel)
+    try:
+        tt = tt_raw.split('\n')[0].split()[-1]
+        if tt:
+            tt = float(tt)
+            if abs(tt - trace.stats.sac.a) >= 2:
+                if trace.stats.sac.a == -12345.0:
+                    print '+',
+                    trace.stats.sac.a = tt
+                    trace.stats.sac.gcarc = ellip_gc
+                print '\nDifference between ellipsoidal and spherical arrival time is %s in %s.%s.%s.%s!' \
+                      % (abs(tt - trace.stats.sac.a), trace.stats.network, trace.stats.station, trace.stats.location, trace.stats.channel)
+                
+            else:
+                print '+',
+                trace.stats.sac.a = tt
+                trace.stats.sac.gcarc = ellip_gc
+    except Exception, e:
+        print '-',
+
     return trace
 
 ########################################################################
