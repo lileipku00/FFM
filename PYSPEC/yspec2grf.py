@@ -15,9 +15,9 @@
 
 # Required Python and Obspy modules will be imported in this part.
 import glob
+import multiprocessing
 import numpy as np
 from obspy.core import read, Trace, UTCDateTime
-import pprocess
 import subprocess
 import sys, os
 import shutil
@@ -42,52 +42,52 @@ t = UTCDateTime(sys.argv[3])
 ###################### adj_sac_name ###################################
 
 
-def adj_sac_name(i, sta_name, path1):
+def adj_sac_name(i, sta_name_i, path1):
     """
     Adjusting SAC names
     It is meant to be used in parallel
     """
     for chan in ['BHE', 'BHN', 'BHZ']:
         tr = read(os.path.join(path1, 'SAC', 'dis.RS' + '%02d' % (i+1) + '..' + chan))[0]
-        tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name[i][0], sta_name[i][1],
-                                                                              sta_name[i][2], chan)), format='SAC')
-        tr_new = read(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name[i][0], sta_name[i][1],
-                                                                                   sta_name[i][2], chan)))[0]
-        tr_new.stats.network = sta_name[i][0]
-        tr_new.stats.station = sta_name[i][1]
-        tr_new.stats.location = sta_name[i][2]
+        tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name_i[0], sta_name_i[1],
+                                                                              sta_name_i[2], chan)), format='SAC')
+        tr_new = read(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name_i[0], sta_name_i[1],
+                                                                                   sta_name_i[2], chan)))[0]
+        tr_new.stats.network = sta_name_i[0]
+        tr_new.stats.station = sta_name_i[1]
+        tr_new.stats.location = sta_name_i[2]
         tr_new.stats.channel = chan
-        tr_new.stats.sac.stla = float(sta_name[i][5])
-        tr_new.stats.sac.stlo = float(sta_name[i][6])
-        tr_new.stats.sac.stel = float(sta_name[i][7])
-        tr_new.stats.sac.stdp = float(sta_name[i][8])
+        tr_new.stats.sac.stla = float(sta_name_i[5])
+        tr_new.stats.sac.stlo = float(sta_name_i[6])
+        tr_new.stats.sac.stel = float(sta_name_i[7])
+        tr_new.stats.sac.stdp = float(sta_name_i[8])
 
-        tr_new.stats.sac.evla = float(sta_name[i][9])
-        tr_new.stats.sac.evlo = float(sta_name[i][10])
-        tr_new.stats.sac.evdp = float(sta_name[i][11])
-        tr_new.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name[i][0], sta_name[i][1],
-                                                                                  sta_name[i][2], chan)),
+        tr_new.stats.sac.evla = float(sta_name_i[9])
+        tr_new.stats.sac.evlo = float(sta_name_i[10])
+        tr_new.stats.sac.evdp = float(sta_name_i[11])
+        tr_new.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name_i[0], sta_name_i[1],
+                                                                                  sta_name_i[2], chan)),
                      format='SAC')
 
 ###################### fill_tt_gcarc ###################################
 
 
-def fill_tt_gcarc(_i, fi_ttime, path1, req_phase):
+def fill_tt_gcarc(_i, fi_ttime_i, path1, req_phase):
     """
     Fill in tt and gcarc
     it is meant to be used in parallel
     """
     try:
-        tr = read(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime[_i][0], fi_ttime[_i][1],
-                                                                               fi_ttime[_i][2], fi_ttime[_i][3])))[0]
-        tr.stats.sac.gcarc = float(fi_ttime[_i][4])
-        if not fi_ttime[_i][5] == 'NaN':
-            tr.stats.sac.a = float(fi_ttime[_i][5])
+        tr = read(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime_i[0], fi_ttime_i[1],
+                                                                               fi_ttime_i[2], fi_ttime_i[3])))[0]
+        tr.stats.sac.gcarc = float(fi_ttime_i[4])
+        if not fi_ttime_i[5] == 'NaN':
+            tr.stats.sac.a = float(fi_ttime_i[5])
         else:
             tr.stats.sac.a = -12345.0
-        tr = td_modify(tr, req_phase)
-        tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime[_i][0], fi_ttime[_i][1],
-                                                                              fi_ttime[_i][2], fi_ttime[_i][3])),
+        #tr = td_modify(tr, req_phase)
+        tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime_i[0], fi_ttime_i[1],
+                                                                              fi_ttime_i[2], fi_ttime_i[3])),
                  format='SAC')
     except Exception, e:
         print 'ERROR: %s' % e
@@ -96,12 +96,12 @@ def fill_tt_gcarc(_i, fi_ttime, path1, req_phase):
 ###################### cut_time_window ###################################
 
 
-def cut_time_window(i, all_files, req_phase, forward_code, path1):
-   """
-   cut time window around theoretical arrival time
-   It is meant to be run in parallel
-   """
-    tr = read(os.path.join(all_files[i]))[0]
+def cut_time_window(i, all_files_i, req_phase, forward_code, path1):
+    """
+    cut time window around theoretical arrival time
+    It is meant to be run in parallel
+    """
+    tr = read(os.path.join(all_files_i))[0]
     (phase_flag, O, A, B, E, GCARC, tr_sliced) = epi_dist(tr, req_phase=req_phase, tb=20, ta=100,
                                                           forward_code=forward_code)
     if phase_flag == 'Y':
@@ -279,6 +279,7 @@ def td_modify(trace, req_phase, bg_model='iasp91'):
 ############################# Main Program #############################
 ########################################################################
 
+req_np = int(sys.argv[2])
 req_phase = sys.argv[5]
 forward_code = sys.argv[8]
 
@@ -287,11 +288,17 @@ path1 = sys.argv[1]
 if not os.path.isdir(os.path.join(path1, 'SAC')):
     os.mkdir(os.path.join(path1, 'SAC'))
     all_files = glob.glob(os.path.join(path1, 'yspec.out.*'))
-    parallel_results = pprocess.Map(limit=int(sys.argv[2]), reuse=1)
-    parallel_job = parallel_results.manage(pprocess.MakeReusable(y2m))
+
+    parallel_req_len = range(0, len(all_files))
+    len_par_grp = [parallel_req_len[n:n+req_np] for n in range(0, len(parallel_req_len), req_np)]
+    par_jobs = []
     for i in range(len(all_files)):
-        parallel_job(all_files[i], path1)
-    parallel_results.finish()
+        p = multiprocessing.Process(target=y2m, args=(all_files[i], path1))
+        par_jobs.append(p)
+    for l in range(len(len_par_grp)):
+        for ll in len_par_grp[l]:
+            par_jobs[ll].start()
+        par_jobs[ll].join()
 else:
     print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC')
@@ -308,11 +315,17 @@ if not os.path.isdir(os.path.join(path1, 'SAC_realName')):
         sta_name[i] = sta_name[i].split(',')
         for j in range(len(sta_name[i])):
             sta_name[i][j] = sta_name[i][j].strip()
-    parallel_results = pprocess.Map(limit=int(sys.argv[2]), reuse=1)
-    parallel_job = parallel_results.manage(pprocess.MakeReusable(adj_sac_name))
+
+    parallel_req_len = range(0, len(sta_name))
+    len_par_grp = [parallel_req_len[n:n+req_np] for n in range(0, len(parallel_req_len), req_np)]
+    par_jobs = []
     for i in range(len(sta_name)):
-        parallel_job(i, sta_name, path1)
-    parallel_results.finish()
+        p = multiprocessing.Process(target=adj_sac_name, args=(i, sta_name[i], path1))
+        par_jobs.append(p)
+    for l in range(len(len_par_grp)):
+        for ll in len_par_grp[l]:
+            par_jobs[ll].start()
+        par_jobs[ll].join()
 else:
     print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC_realName')
@@ -322,11 +335,17 @@ fio_ttime = open(path3, 'r')
 fi_ttime = fio_ttime.readlines()
 for _i in xrange(len(fi_ttime)):
     fi_ttime[_i] = fi_ttime[_i].split(',')[:-1]
-parallel_results = pprocess.Map(limit=int(sys.argv[2]), reuse=1)
-parallel_job = parallel_results.manage(pprocess.MakeReusable(fill_tt_gcarc))
-for _i in xrange(len(fi_ttime)):
-    parallel_job(_i, fi_ttime, path1, req_phase)
-parallel_results.finish()
+
+parallel_req_len = range(0, len(fi_ttime))
+len_par_grp = [parallel_req_len[n:n+req_np] for n in range(0, len(parallel_req_len), req_np)]
+par_jobs = []
+for _i in range(len(fi_ttime)):
+    p = multiprocessing.Process(target=fill_tt_gcarc, args=(_i, fi_ttime[_i], path1, req_phase))
+    par_jobs.append(p)
+for l in range(len(len_par_grp)):
+    for ll in len_par_grp[l]:
+        par_jobs[ll].start()
+    par_jobs[ll].join()
 
 print '\nCutting Time-Window around %s' % req_phase
 print '\nWARNING: tb=20, ta=100 (hard coded!)'
@@ -334,11 +353,17 @@ if not os.path.isdir(os.path.join(path1, 'grf_cut')):
     os.mkdir(os.path.join(path1, 'grf_cut'))
 
 all_files = glob.glob(os.path.join(path1, 'SAC_realName', '*.*.*'))
-parallel_results = pprocess.Map(limit=int(sys.argv[2]), reuse=1)
-parallel_job = parallel_results.manage(pprocess.MakeReusable(cut_time_window)
+
+parallel_req_len = range(0, len(all_files))
+len_par_grp = [parallel_req_len[n:n+req_np] for n in range(0, len(parallel_req_len), req_np)]
+par_jobs = []
 for i in range(len(all_files)):
-    parallel_job(i, all_files, req_phase, forward_code, path1)
-parallel_results.finish()
+    p = multiprocessing.Process(target=cut_time_window, args=(i, all_files[i], req_phase, forward_code, path1))
+    par_jobs.append(p)
+for l in range(len(len_par_grp)):
+    for ll in len_par_grp[l]:
+        par_jobs[ll].start()
+    par_jobs[ll].join()
 
 print '\nMove the data to data folder!'
 data_dest = sys.argv[6]
