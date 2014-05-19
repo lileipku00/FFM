@@ -39,14 +39,35 @@ t = UTCDateTime(sys.argv[3])
 ###################### Functions are defined here ######################
 ########################################################################
 
+###################### read_yspec_in ###################################
+
+
+def read_yspec_in(path1):
+    """
+    Read yspec.in from the directory
+    """
+    yspec_in_fio = open(os.path.join(path1, 'yspec.in'))
+    yspec_in_fi = yspec_in_fio.readlines()
+    yspec_in_fi = yspec_in_fi[86:]
+    for i in range(len(yspec_in_fi)):
+        yspec_in_fi[i] = yspec_in_fi[i].split()
+    for i in range(len(yspec_in_fi)):
+        for j in range(len(yspec_in_fi[i])):
+            yspec_in_fi[i][j] = float(yspec_in_fi[i][j])
+    return yspec_in_fi
+
 ###################### adj_sac_name ###################################
 
 
-def adj_sac_name(i, sta_name_i, path1):
+def adj_sac_name(i, sta_name_i, yspec_in_names_i, path1):
     """
     Adjusting SAC names
     It is meant to be used in parallel
     """
+    if (yspec_in_names_i[0] - float(sta_name_i[5])) > 0.01:
+        print 'ERROR, Difference in latitude: %s' % (yspec_in_names_i[0] - float(sta_name_i[5]))
+    if (yspec_in_names_i[1] - float(sta_name_i[6])) > 0.01:
+        print 'ERROR, Difference in longitude: %s' % (yspec_in_names_i[1] - float(sta_name_i[6]))
     for chan in ['BHE', 'BHN', 'BHZ']:
         tr = read(os.path.join(path1, 'SAC', 'dis.RS' + '%02d' % (i+1) + '..' + chan))[0]
         tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name_i[0], sta_name_i[1],
@@ -319,8 +340,9 @@ if not os.path.isdir(os.path.join(path1, 'SAC_realName')):
     parallel_req_len = range(0, len(sta_name))
     len_par_grp = [parallel_req_len[n:n+req_np] for n in range(0, len(parallel_req_len), req_np)]
     par_jobs = []
+    yspec_in_names = read_yspec_in(path1)
     for i in range(len(sta_name)):
-        p = multiprocessing.Process(target=adj_sac_name, args=(i, sta_name[i], path1))
+        p = multiprocessing.Process(target=adj_sac_name, args=(i, sta_name[i], yspec_in_names[i], path1))
         par_jobs.append(p)
     for l in range(len(len_par_grp)):
         for ll in len_par_grp[l]:
