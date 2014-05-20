@@ -21,6 +21,7 @@ from obspy.core import read, Trace, UTCDateTime
 import subprocess
 import sys, os
 import shutil
+import time
 
 '''
 sys.argv[1]: path to the newly calculated YSPEC in the gallery
@@ -319,7 +320,10 @@ if not os.path.isdir(os.path.join(path1, 'SAC')):
     for l in range(len(len_par_grp)):
         for ll in len_par_grp[l]:
             par_jobs[ll].start()
-        par_jobs[ll].join()
+        for ll in len_par_grp[l]:
+            while par_jobs[ll].is_alive():
+                time.sleep(0.1)
+        print '-',
 else:
     print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC')
@@ -347,7 +351,10 @@ if not os.path.isdir(os.path.join(path1, 'SAC_realName')):
     for l in range(len(len_par_grp)):
         for ll in len_par_grp[l]:
             par_jobs[ll].start()
-        par_jobs[ll].join()
+        for ll in len_par_grp[l]:
+            while par_jobs[ll].is_alive():
+                time.sleep(0.1)
+        print '-',
 else:
     print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC_realName')
@@ -367,7 +374,10 @@ for _i in range(len(fi_ttime)):
 for l in range(len(len_par_grp)):
     for ll in len_par_grp[l]:
         par_jobs[ll].start()
-    par_jobs[ll].join()
+    for ll in len_par_grp[l]:
+        while par_jobs[ll].is_alive():
+            time.sleep(0.1)
+    print '-',
 
 print '\nCutting Time-Window around %s' % req_phase
 print '\nWARNING: tb=20, ta=100 (hard coded!)'
@@ -385,7 +395,10 @@ for i in range(len(all_files)):
 for l in range(len(len_par_grp)):
     for ll in len_par_grp[l]:
         par_jobs[ll].start()
-    par_jobs[ll].join()
+    for ll in len_par_grp[l]:
+        while par_jobs[ll].is_alive():
+            time.sleep(0.1)
+    print '-',
 
 print '\nMove the data to data folder!'
 data_dest = sys.argv[6]

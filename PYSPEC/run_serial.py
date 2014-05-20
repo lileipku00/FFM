@@ -24,7 +24,7 @@ req_phase = 'Pdiff'
 req_solver = 'yspec'
 req_processes = '40'
 add_event_info = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/INITIALIZATION/results'
-add_proc_ev = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180_TEST'
+add_proc_ev = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 add_runff = '/home/hosseini/FFINVERSION/AMPLITUDES/Programs/ffproc/FFsetup'
 # -------------------------------------------------------
 
