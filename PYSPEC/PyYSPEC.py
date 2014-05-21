@@ -20,6 +20,7 @@
 # Added this line for python 2.5 compatibility
 from __future__ import with_statement
 import filecmp
+import shutil
 import sys
 
 from util_PyYSPEC import *
@@ -33,27 +34,32 @@ sys.argv[5]: path to YSPEC gallery (YSPEC_SYN_GALLERY)
 '''
 
 try:
-    print 'input:\n%s' % sys.argv[1]
+    print 'input: %s' % sys.argv[1]
 except Exception, e:
     sys.exit('usage: python PyYSPEC <path/to/yspec_infiles>\nERROR: %s' % e)
+
 indir = sys.argv[1]
 create_source_inp(indir=indir)
 
 try:
-    print 'input:\n%s %s %s %s' % (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    print 'input: %s %s %s %s' % (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
 except Exception, e:
     sys.exit('ERROR in the number of inputs!\nERROR: %s' % e)
 
 if os.path.isfile(os.path.join(sys.argv[5], 'yspec.in')):
-    if not filecmp.cmp(sys.argv[3], os.path.join(sys.argv[5], 'yspec.in')):
-        print '\nWARNING: Current event was simulated before with different setting?'
-        #print 'Removing the previous one and start the new simulation.'
-        #print '\nRemoved directory:'
+    shutil.copy(os.path.join(sys.argv[5], 'yspec.in'), os.path.join(sys.argv[1], 'yspec.in.copied_gallery'))
+    yspec_gallery = open(os.path.join(sys.argv[1], 'yspec.in.copied_gallery')).readlines()
+    open(os.path.join(sys.argv[1], 'yspec.in.copied_gallery_cropped'), 'w').writelines(yspec_gallery[6:])
+
+    yspec_here = open(os.path.join(sys.argv[1], 'yspec.in')).readlines()
+    open(os.path.join(sys.argv[1], 'yspec.in.copied_here_cropped'), 'w').writelines(yspec_here[6:])
+
+    if not filecmp.cmp(os.path.join(sys.argv[1], 'yspec.in.copied_here_cropped'),
+                       os.path.join(sys.argv[1], 'yspec.in.copied_gallery_cropped')):
+        print '\nERROR: Current event was simulated before with different setting?'
         print sys.argv[5]
-        #shutil.rmtree(sys.argv[5])
     else:
-        print '\nThe simulation was done before and it is found in the archive:'
-        print sys.argv[5]
+        print '\nFOUND simulation in archive: %s' % sys.argv[5]
 else:
     print '\nStart a new simulation for:'
     print sys.argv[5]

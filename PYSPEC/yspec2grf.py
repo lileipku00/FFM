@@ -66,9 +66,9 @@ def adj_sac_name(i, sta_name_i, yspec_in_names_i, path1):
     It is meant to be used in parallel
     """
     if (yspec_in_names_i[0] - float(sta_name_i[5])) > 0.01:
-        print 'ERROR, Difference in latitude: %s' % (yspec_in_names_i[0] - float(sta_name_i[5]))
+        print 'ERROR: Difference in latitude: %s' % (yspec_in_names_i[0] - float(sta_name_i[5]))
     if (yspec_in_names_i[1] - float(sta_name_i[6])) > 0.01:
-        print 'ERROR, Difference in longitude: %s' % (yspec_in_names_i[1] - float(sta_name_i[6]))
+        print 'ERROR: Difference in longitude: %s' % (yspec_in_names_i[1] - float(sta_name_i[6]))
     for chan in ['BHE', 'BHN', 'BHZ']:
         tr = read(os.path.join(path1, 'SAC', 'dis.RS' + '%02d' % (i+1) + '..' + chan))[0]
         tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (sta_name_i[0], sta_name_i[1],
@@ -106,7 +106,7 @@ def fill_tt_gcarc(_i, fi_ttime_i, path1, req_phase):
         if not fi_ttime_i[5] == 'NaN':
             tr.stats.sac.a = float(fi_ttime_i[5])
         else:
-            tr.stats.sac.a = -12345.0
+            tr.stats.sac.a = -12345
         #tr = td_modify(tr, req_phase)
         tr.write(os.path.join(path1, 'SAC_realName', 'grf.%s.%s.%s.x00.%s' % (fi_ttime_i[0], fi_ttime_i[1],
                                                                               fi_ttime_i[2], fi_ttime_i[3])),
@@ -128,7 +128,7 @@ def cut_time_window(i, all_files_i, req_phase, forward_code, path1):
                                                           forward_code=forward_code)
     if phase_flag == 'Y':
         tr_sliced.stats.sac.o = O
-        #tr_sliced.stats.sac.a = A
+        tr_sliced.stats.sac.a = A
         tr_sliced.stats.sac.b = B
         tr_sliced.stats.sac.e = E
         #tr_sliced.stats.sac.gcarc = GCARC
@@ -148,15 +148,23 @@ def epi_dist(tr, req_phase='Pdiff', tb=20, ta=100, model='iasp91', forward_code=
     It should be completely compatible with WKBJ method
     """
     if not forward_code == 'yspec':
-        print 'O, B and E headers should be set correctly!'
-    if not tr.stats.sac.a == -12345.0:
+        print 'ERROR: O, B and E headers should be set correctly!'
+    if not tr.stats.sac.a == -12345:
         t_phase = tr.stats.sac.a
         phase_exist = 'Y'
-        tr_sliced = tr.slice(tr.stats.starttime + t_phase - tb, tr.stats.starttime + t_phase + ta)
+        tr_sliced = tr.slice(t + t_phase - tb, t + t_phase + ta)
         # XXX O should be zero? for the moment it could be zero
         # since YSPEC seismograms are all start at 0 but not for AXISEM
         O = 0
-        A = t_phase
+        #A = t_phase
+        A = tr_sliced.stats.starttime + tb - t
+        if abs(A - t_phase) > 0.11:
+            print 'ERROR: There is a problem in slice functionality (diff: %s) in %s.%s.%s.%s' % ((A-t_phase),
+                                                                                                  tr.stats.network,
+                                                                                                  tr.stats.station,
+                                                                                                  tr.stats.location,
+                                                                                                  tr.stats.channel)
+
         B = tr_sliced.stats.starttime - tr.stats.starttime
         # XXX Shouldn't be related to tr_sliced (end time)?
         E = tr_sliced.stats.endtime - tr.stats.starttime
@@ -281,7 +289,7 @@ def td_modify(trace, req_phase, bg_model='iasp91'):
         if tt:
             tt = float(tt)
             if abs(tt - trace.stats.sac.a) >= 2:
-                if trace.stats.sac.a == -12345.0:
+                if trace.stats.sac.a == -12345:
                     print '+',
                     trace.stats.sac.a = tt
                     trace.stats.sac.gcarc = ellip_gc
@@ -323,7 +331,7 @@ if not os.path.isdir(os.path.join(path1, 'SAC')):
         for ll in len_par_grp[l]:
             while par_jobs[ll].is_alive():
                 time.sleep(0.1)
-        print '-',
+        print '%s/%s' % (l, len(len_par_grp)),
 else:
     print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC')
@@ -354,7 +362,7 @@ if not os.path.isdir(os.path.join(path1, 'SAC_realName')):
         for ll in len_par_grp[l]:
             while par_jobs[ll].is_alive():
                 time.sleep(0.1)
-        print '-',
+        print '%s/%s' % (l, len(len_par_grp)),
 else:
     print '\nThe directory is already there:'
     print os.path.join(path1, 'SAC_realName')
@@ -377,10 +385,10 @@ for l in range(len(len_par_grp)):
     for ll in len_par_grp[l]:
         while par_jobs[ll].is_alive():
             time.sleep(0.1)
-    print '-',
+    print '%s/%s' % (l, len(len_par_grp)),
 
 print '\nCutting Time-Window around %s' % req_phase
-print '\nWARNING: tb=20, ta=100 (hard coded!)'
+print 'WARNING: tb=20, ta=100 (hard coded!)'
 if not os.path.isdir(os.path.join(path1, 'grf_cut')):
     os.mkdir(os.path.join(path1, 'grf_cut'))
 
@@ -398,7 +406,7 @@ for l in range(len(len_par_grp)):
     for ll in len_par_grp[l]:
         while par_jobs[ll].is_alive():
             time.sleep(0.1)
-    print '-',
+    print '%s/%s' % (l, len(len_par_grp)),
 
 print '\nMove the data to data folder!'
 data_dest = sys.argv[6]
