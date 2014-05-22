@@ -3,3 +3,5 @@ results
 STATISTICS/statistics
 CHECKED.txt
 INITIALIZATION/results
+PYSPEC/util_PyYSPEC.pyc
+*/*.pyc
