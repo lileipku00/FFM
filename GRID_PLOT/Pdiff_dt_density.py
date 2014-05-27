@@ -30,6 +30,7 @@ import time
 
 # ------------------- INPUT -----------------------------
 #processed_events_add = '/import/neptun-dunkles/hosseini/PROCESSING/ECORR'
+#processed_events_add = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 band = 'band01'
 #band = 'BB'
