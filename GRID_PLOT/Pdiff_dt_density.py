@@ -5,7 +5,7 @@
 
 #-------------------------------------------------------------------
 #   Filename:  Pdiff_dt_density.py
-#   Purpose:   plot dt calculated with FFM on a density map
+#   Purpose:   plot density map of all measured dt by FF
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -29,13 +29,14 @@ import sys
 import time
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-dunkles/hosseini/PROCESSING/ECORR'
+#processed_events_add = '/import/neptun-dunkles/hosseini/PROCESSING/ECORR'
+processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 band = 'band01'
 #band = 'BB'
 xcorr_limit = 0.8
 gr_x = 720
 npts = 1800
-parts = 80
+parts = 40
 #gr_x = 18
 #npts = 180
 #parts = 1

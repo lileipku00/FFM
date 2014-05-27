@@ -3,7 +3,7 @@
 
 #-------------------------------------------------------------------
 #   Filename:  dispersion_dT_dA.py
-#   Purpose:   plot dispersion curves for dT and dA out of FFM
+#   Purpose:   plot dispersion curves for dT and dA out of FFM results
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -26,8 +26,7 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.8
-remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5_32_100'
-#remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 
 # All stations is already disabled, so the following flag does not change anything
 all_stations = False
@@ -35,7 +34,7 @@ just_high_cc = xcorr_limit
 remove_GSN_median = True
 
 plot_mean = True
-plot_scatter = True
+plot_scatter = False
 plot_sta = True
 
 # ----- IF YOU DO NOT KNOW WHAT YOU ARE DOING, DO NOT CHANGE THE FOLLOWING INPUTS -------

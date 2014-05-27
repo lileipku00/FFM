@@ -348,3 +348,15 @@ def writer(passed_staev, bands):
             fio.close()
         except Exception, e:
             print 'ERROR in writer %s' % e
+
+# ------------------- round_to --------------------------
+
+
+def round_to(n, precision):
+    """
+    rounding the numbers!
+    """
+    correction = 0.5 if n >= 0 else -0.5
+    rounded = int(n/precision+correction)*precision
+    rounded2 = round(rounded, 6)
+    return rounded2

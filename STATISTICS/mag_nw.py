@@ -24,8 +24,7 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 xcorr_limit = 0.8
-#remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5_32_100'
-remote_dir = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 
 min_epi = 120
 max_epi = 180
@@ -44,18 +43,6 @@ def mag_finder(ev_address, ev_fi):
             mag = float(ev_fi[i][1])
             break
     return mag
-
-# ------------------- round_to --------------------------
-
-
-def round_to(n, precission):
-    """
-    rounding the numbers!
-    """
-    correction = 0.5 if n >= 0 else -0.5
-    rounded = int(n/precission+correction)*precission
-    rounded2 = round(rounded, 6)
-    return rounded2
 
 # --------------------------------------------------------------
 # ------------------- MAIN PROGRAM -----------------------------
@@ -83,7 +70,8 @@ for i in range(len(bands)):
     for j in range(len(proc_ev_ls)):
         # [bands[i]] is defined like this because reader gets
         # list as an input
-        all_staev = uf.reader(proc_ev_ls[j], [bands[i]], band_period)
+        all_staev = uf.reader(proc_ev_ls[j], [bands[i]], band_period, all_stations=False, just_high_cc=False,
+                              remove_GSN_median=False)
         if not all_staev:
             continue
 
@@ -101,7 +89,7 @@ for i in range(len(bands)):
         nw_all = np.append(nw_all, len(passed_staev_epi))
     for j in range(len(mag_all)):
         for k in mag_dic:
-            if abs(round_to(mag_all[j], 0.5) - float(k)) < 0.1:
+            if abs(uf.round_to(mag_all[j], 0.5) - float(k)) < 0.1:
                 mag_dic[k][0] += nw_all[j]
                 mag_dic[k][1] += 1
                 break

@@ -25,7 +25,7 @@ import util_ffproc as uf
 # ------------------- INPUT -----------------------------
 # It should be changed to -100 (large negative number) or so for nr_cc!!
 xcorr_limit = -100
-remote_dir = '/import/neptun-helles/hosseini/FFM/P_measure_2_sec_LAMBDA_1-5_32_100'
+remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 
 nr_cc = True
 line_plot = True
@@ -40,18 +40,6 @@ remove_GSN_median = True
 # =======================================================
 # =================== FUNCTIONS =========================
 # =======================================================
-
-# ------------------- round_to --------------------------
-
-
-def round_to(n, precision):
-    """
-    rounding the numbers!
-    """
-    correction = 0.5 if n >= 0 else -0.5
-    rounded = int(n/precision+correction)*precision
-    rounded2 = round(rounded, 6)
-    return rounded2
 
 # ------------------- nr_dt -----------------------------
 
@@ -72,7 +60,7 @@ def nr_dt(t_shift_array, max_ts=30., width=0.01, num_bands=1, enum=0, leg='defau
     for i in range(len(bins)): 
         bins[i] = round(bins[i], 6)
     for i in range(len(t_shift_array)):
-        t_shift_array[i] = round_to(t_shift_array[i], width)
+        t_shift_array[i] = uf.round_to(t_shift_array[i], width)
     
     digit = np.digitize(t_shift_array, bins)
     digit_list = digit.tolist()
