@@ -411,14 +411,14 @@ for l in range(len(len_par_grp)):
 print '\nMove the data to data folder!'
 data_dest = sys.argv[6]
 if req_phase in ['P', 'Pdiff']:
-    phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHZ'))
+    phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.*HZ'))
     for fi in phase_ls:
         shutil.copy(fi, data_dest)
         os.remove(fi)
 elif req_phase in ['SH']:
     print '\nit just moves the BHE and BHN!'
-    phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.BHE'))
-    phase_ls.append(glob.glob(os.path.join(path1, 'grf_cut', '*.BHN')))
+    phase_ls = glob.glob(os.path.join(path1, 'grf_cut', '*.*HE'))
+    phase_ls.append(glob.glob(os.path.join(path1, 'grf_cut', '*.*HN')))
     for fi in phase_ls:
         shutil.copy(fi, data_dest)
         os.remove(fi)
