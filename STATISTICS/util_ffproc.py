@@ -55,27 +55,31 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
 
             fio_dt = open(os.path.join(evadd, 'outfiles', 'ffproc.ampstt.' + str_i), 'r')
             f_dt = fio_dt.readlines()
-            for j in range(2, len(f_dt)):
+            for j in range(0, len(f_dt)):
+                if f_dt[j].strip().startswith('#'):
+                    continue
                 info_dt = f_dt[j].split()
-                xcorr = float(info_dt[2])
-                da = float(info_dt[3])
-                dt = float(info_dt[5])
-                lat = float(info_dt[6])
-                lon = float(info_dt[7])
-                epi = float(info_dt[8])
-                sta_id = info_dt[9]
+                lat = float(info_dt[2])
+                lon = float(info_dt[3])
+                epi = float(info_dt[4])
+                sta_id = info_dt[5]
+                xcorr = float(info_dt[6])
+                dt = float(info_dt[8])
+                da = float(info_dt[12])
+                clip_taumax = int(info_dt[19])
                 # First we collect all the information and then filter it in the next step!
-                passed_staev_tmp.append([lat, lon, xcorr, band_period[str(i)], epi, sta_id])
+                passed_staev_tmp.append([lat, lon, xcorr, band_period[str(i)], epi, sta_id, clip_taumax])
                 all_dt_event = np.append(all_dt_event, dt)
                 all_da_event = np.append(all_da_event, da/1.e9)
                 if just_high_cc:
                     if xcorr >= just_high_cc:
-                        all_dt_high_cc.append(dt)
-                        if remove_GSN_median:
-                            station_id = '%s.%s' % (info_dt[9].split('.')[0], info_dt[9].split('.')[1])
-                            if station_id in GSN_stations:
-                                dt_GSN.append(dt)
-            if remove_GSN_median and len(dt_GSN) > 0:
+                        if clip_taumax != 1:
+                            all_dt_high_cc.append(dt)
+                            if remove_GSN_median:
+                                station_id = '%s.%s' % (info_dt[5].split('.')[0], info_dt[5].split('.')[1])
+                                if station_id in GSN_stations:
+                                    dt_GSN.append(dt)
+            if remove_GSN_median and len(dt_GSN) > 10:
                 np_median = np.median(dt_GSN)
             elif just_high_cc and len(all_dt_high_cc) > 0:
                 np_median = np.median(all_dt_high_cc)
@@ -132,6 +136,9 @@ def filters(all_staev, bands, xcorr_limit=False, all_stations=True):
         # Obviously, bands can be in the shape of [band] in order to check just one band and not all!
         for j in range(len(bands)):
             if all_staev[j][i][4] < xcorr_limit:
+                flag = False
+                break
+            if all_staev[j][i][8] == 1:
                 flag = False
                 break
             #station_id = '%s.%s' % (all_staev[j][i][7].split('.')[0], all_staev[j][i][7].split('.')[1])

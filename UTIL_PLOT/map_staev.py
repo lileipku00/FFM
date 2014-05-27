@@ -69,7 +69,7 @@ for i in range(len(proc_ev_ls)):
         fio_dt = open(os.path.join(evnt, 'outfiles', 'ffproc.ampstt.' + band), 'r')
         f_dt = fio_dt.readlines()
         for j in range(0, len(f_dt)):
-            if f_dt[j].startswith('#'):
+            if f_dt[j].strip().startswith('#'):
                 continue
             info_dt = f_dt[j].split()
             xcorr = float(info_dt[6])
@@ -77,8 +77,8 @@ for i in range(len(proc_ev_ls)):
             lon = float(info_dt[3])
             clip_tau = int(info_dt[19])
             if xcorr >= xcorr_limit:
-                if clip_tau == 0:
-                    stations_info.append([lat, lon])
+                #if clip_tau == 0:
+                stations_info.append([lat, lon])
     except Exception, e:
         print e
         failed += 1

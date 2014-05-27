@@ -67,7 +67,7 @@ band_period = {'1': 30.0, '2': 21.2, '3': 15.0, '4': 10.6, '5': 7.5, '6': 5.3, '
 proc_ev_ls = glob.glob(os.path.join(remote_dir, '*.*.*.*'))
 print '%s processed events found!' % len(proc_ev_ls)
 
-ev_fio = open('selected_events_all.txt')
+ev_fio = open('selected_events_ALL.txt')
 ev_fi = ev_fio.readlines()
 for i in range(len(ev_fi)):
     ev_fi[i] = [ev_fi[i].split(',')[0], ev_fi[i].split(',')[4]]
@@ -90,7 +90,6 @@ for i in range(len(bands)):
         passed_staev = uf.filters(all_staev, [bands[i]], xcorr_limit=xcorr_limit)
         if not passed_staev[0]:
             continue
-
         magni = mag_finder(proc_ev_ls[j], ev_fi)
         mag_all = np.append(mag_all, magni)
 
@@ -102,7 +101,7 @@ for i in range(len(bands)):
         nw_all = np.append(nw_all, len(passed_staev_epi))
     for j in range(len(mag_all)):
         for k in mag_dic:
-            if str(round_to(mag_all[j], 0.5)) == k:
+            if abs(round_to(mag_all[j], 0.5) - float(k)) < 0.1:
                 mag_dic[k][0] += nw_all[j]
                 mag_dic[k][1] += 1
                 break
