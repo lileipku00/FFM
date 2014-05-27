@@ -23,7 +23,7 @@ import os
 import sys
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM/Pdiff_measure_2_sec_LAMBDA_1-5_90_180'
+processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 band = 'band01'
 #band = 'BB'
 xcorr_limit = -100
@@ -68,13 +68,17 @@ for i in range(len(proc_ev_ls)):
 
         fio_dt = open(os.path.join(evnt, 'outfiles', 'ffproc.ampstt.' + band), 'r')
         f_dt = fio_dt.readlines()
-        for j in range(2, len(f_dt)):
+        for j in range(0, len(f_dt)):
+            if f_dt[j].startswith('#'):
+                continue
             info_dt = f_dt[j].split()
-            xcorr = float(info_dt[2])
-            lat = float(info_dt[6])
-            lon = float(info_dt[7])
+            xcorr = float(info_dt[6])
+            lat = float(info_dt[2])
+            lon = float(info_dt[3])
+            clip_tau = int(info_dt[19])
             if xcorr >= xcorr_limit:
-                stations_info.append([lat, lon])
+                if clip_tau == 0:
+                    stations_info.append([lat, lon])
     except Exception, e:
         print e
         failed += 1
