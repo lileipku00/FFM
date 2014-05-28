@@ -14,6 +14,7 @@
 #-----------------------------------------------------------------------
 
 # Required Python modules will be imported in this part.
+import numpy as np
 
 import output_reader as outread
 
@@ -23,13 +24,13 @@ events_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAM
 req_band = 'band01'
 
 # WARNING: all the intervals are min <= ... < max
-min_depth = 0
-max_depth = 10
+min_depth = -10
+max_depth = 1000
 
-min_xcorr = 0.85
+min_xcorr = 0.8
 max_xcorr = 2
 
-min_epi = 95
+min_epi = 0
 max_epi = 181
 
 check_clip = True
@@ -51,8 +52,13 @@ print 'Missed events: %s' % (len(passed_event_adds) - len(output_files))
 print '========================='
 
 passed_ev_stas = []
+passed_ev_stas_array = np.array([])
 for i in range(len(output_files)):
     passed_ev_sta_single = outread.station_filter(output_files[i], min_xcorr=min_xcorr, max_xcorr=max_xcorr,
                                                   min_epi=min_epi, max_epi=max_epi, check_clip=check_clip)
     if not passed_ev_sta_single.size == 0:
         passed_ev_stas.append(passed_ev_sta_single)
+        if passed_ev_stas_array.size == 0:
+            passed_ev_stas_array = passed_ev_sta_single
+        else:
+            passed_ev_stas_array = np.append(passed_ev_stas_array, passed_ev_sta_single, 0)

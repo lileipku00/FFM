@@ -13,7 +13,12 @@ def output_file_reader(add_output, req_band='band01'):
     if not os.path.isfile(os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band)):
         print "%s is not found!" % os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band)
         return empty_array
-    return np.loadtxt(os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band), dtype='S', comments='#')
+    rd_output = np.loadtxt(os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band), dtype='S', comments='#')
+    new_col_cr = np.empty([np.shape(rd_output)[0], 2], dtype=object)
+    new_col_cr[:, 0] = os.path.basename(add_output)
+    new_col_cr[:, 1] = req_band
+    output_sta_evname = np.append(rd_output, new_col_cr, 1)
+    return output_sta_evname
 
 ####################### event_filter #############################
 
