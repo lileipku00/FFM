@@ -71,7 +71,7 @@ for i in range(len(evs_ls)):
             if ev_name not in target_events:
                 print '%s not in the target events...continue!' %(ev_name)
                 continue
-        fio_source = open(os.path.join(ev, 'outfiles', 'ffproc.source'), 'r')
+        fio_source = open(os.path.join(ev, 'outfiles', 'ampinv.source'), 'r')
         f_source = fio_source.readlines()
         ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
         evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()
@@ -80,13 +80,15 @@ for i in range(len(evs_ls)):
         # the data will be read based on NEIC, HARVARD cataloges
         try:
             mrr, mtt, mpp, mrt, mrp, mtp = f_source[13].split()
+            event_depth = inverted_depth
         except Exception, e:
             mrr, mtt, mpp, mrt, mrp, mtp = f_source[7].split()
+            event_depth = catalog_depth
         fio_mag = open(os.path.join(ev, 'README'), 'r')
         f_mag = fio_mag.readlines()
         ev_mag = f_mag[1].split()[1]
         ev_info.append('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' %(ev_name,evlat,
-            evlon,inverted_depth,ev_mag,mrr,mtt,mpp,mrt,mrp,mtp))
+            evlon,event_depth,ev_mag,mrr,mtt,mpp,mrt,mrp,mtp))
     except Exception, e:
         print ev_name
 
