@@ -62,7 +62,7 @@ for i in range(len(proc_ev_ls)):
     passed_staev_tmp = []
     try:
         fio_dt = open(os.path.join(evnt, 'outfiles', 'ffproc.ampstt.' + band), 'r')
-        fio_source = open(os.path.join(evnt, 'outfiles', 'ampinv.source'), 'r')
+        fio_source = open(os.path.join(evnt, 'outfiles', 'ffproc.source'), 'r')
         f_source = fio_source.readlines()
         ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
         evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()

@@ -1,22 +1,35 @@
 import glob
 import numpy as np
+from obspy import UTCDateTime
 import os
 
 ####################### output_file_reader #############################
 
 
-def output_file_reader(add_output, req_band='band01'):
+def output_file_reader(evinfo, req_band='band01'):
     """
     This function reads one output file and pass all the values for further analysis in next steps
     """
+    add_output = evinfo[0]
     empty_array = np.array([])
     if not os.path.isfile(os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band)):
         print "%s is not found!" % os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band)
         return empty_array
+    if not os.path.isfile(os.path.join(add_output, 'outfiles', 'ffproc.receivers')):
+        print "%s is not found!" % os.path.join(add_output, 'outfiles', 'ffproc.receivers')
+        return empty_array
     rd_output = np.loadtxt(os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band), dtype='S', comments='#')
-    new_col_cr = np.empty([np.shape(rd_output)[0], 2], dtype=object)
-    new_col_cr[:, 0] = os.path.basename(add_output)
-    new_col_cr[:, 1] = req_band
+    sta_output = np.loadtxt(os.path.join(add_output, 'outfiles', 'ffproc.receivers'), dtype='S', comments='#')
+    new_col_cr = np.empty([np.shape(rd_output)[0], 9], dtype=object)
+    new_col_cr[:, 0] = (sta_output[:, 5].astype(np.float) - sta_output[:, 6].astype(np.float))/1000.
+    new_col_cr[:, 1] = os.path.basename(add_output)
+    new_col_cr[:, 2] = evinfo[1]
+    new_col_cr[:, 3] = evinfo[2]
+    new_col_cr[:, 4] = evinfo[3]
+    new_col_cr[:, 5] = evinfo[4]
+    new_col_cr[:, 6] = evinfo[5]
+    new_col_cr[:, 7] = evinfo[6]
+    new_col_cr[:, 8] = req_band
     output_sta_evname = np.append(rd_output, new_col_cr, 1)
     return output_sta_evname
 
@@ -33,11 +46,10 @@ def event_filter(par_add, min_dp=-10, max_dp=1000):
 
     event_adds = glob.glob(os.path.join(par_add, '*.*.*.*'))
     passed_event_adds = []
-    passed_event_depths = []
     for i in range(len(event_adds)):
         add_flag = False
         try:
-            fio_source = open(os.path.join(event_adds[i], 'outfiles', 'ampinv.source'), 'r')
+            fio_source = open(os.path.join(event_adds[i], 'outfiles', 'ffproc.source'), 'r')
             f_source = fio_source.readlines()
             ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
             evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()
@@ -48,14 +60,21 @@ def event_filter(par_add, min_dp=-10, max_dp=1000):
                 mrr, mtt, mpp, mrt, mrp, mtp = f_source[7].split()
         except Exception, e:
             print 'ERROR: %s' % e
+        ev_date = UTCDateTime(year=int(ev_year), julday=int(ev_julianday))
+        ev_date_str = '%4s%2s%2s' % (ev_date.year, ev_date.month, ev_date.day)
+        ev_date_str = ev_date_str.replace(' ', '0')
+        ev_time = '%2s%2s%2s' % (ev_hr, ev_min, ev_sec)
+        ev_time = ev_time.replace(' ', '0')
+        ev_id = '%s%s' % (ev_date_str, ev_time)
+
+
 
         # Check for depth
         if min_dp <= float(inverted_depth) < max_dp:
             add_flag = True
         if add_flag:
-            passed_event_adds.append(event_adds[i])
-            passed_event_depths.append(inverted_depth)
-    return passed_event_adds, passed_event_depths
+            passed_event_adds.append([event_adds[i], ev_date_str, ev_time, ev_id, evlat, evlon, inverted_depth])
+    return passed_event_adds
 
 ####################### station_filter #############################
 

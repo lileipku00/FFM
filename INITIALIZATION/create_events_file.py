@@ -71,7 +71,7 @@ for i in range(len(evs_ls)):
             if ev_name not in target_events:
                 print '%s not in the target events...continue!' %(ev_name)
                 continue
-        fio_source = open(os.path.join(ev, 'outfiles', 'ampinv.source'), 'r')
+        fio_source = open(os.path.join(ev, 'outfiles', 'ffproc.source'), 'r')
         f_source = fio_source.readlines()
         ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
         evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()

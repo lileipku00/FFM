@@ -44,7 +44,7 @@ def reader(evadd, bands, band_period, all_stations=False, just_high_cc=False, re
             all_da_event = np.array([])
             passed_staev_tmp = []
 
-            fio_source = open(os.path.join(evadd, 'outfiles', 'ampinv.source'), 'r')
+            fio_source = open(os.path.join(evadd, 'outfiles', 'ffproc.source'), 'r')
             f_source = fio_source.readlines()
             ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
             evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()
