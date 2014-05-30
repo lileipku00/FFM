@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from obspy import UTCDateTime
 import os
+import shutil
 import sys
+import time
+import pyvtk as pvtk
 
 ####################### output_file_reader #############################
 
@@ -192,7 +195,7 @@ def raydata_input_generator(filt_array, input_file_name, twinned, phase, min_xco
         inp_lines.append(first_line)
         inp_lines.append(second_line)
         inp_lines.append(third_line)
-    input_file_fio = open(input_file_name, 'w')
+    input_file_fio = open(os.path.join('RESULTS', input_file_name), 'w')
     input_file_fio.writelines(inp_lines)
 
 ####################### raydata_input #############################
@@ -202,12 +205,248 @@ def raydata_input(bg_model, input_file_name, phase):
     """
     make in.input_file_name for raydata
     """
-    in_input_fio = open('in.%s' % input_file_name, 'w')
+    in_input_fio = open(os.path.join('RESULTS', 'in.raydata_%s' % input_file_name), 'w')
     in_input_fio.write('%s\n' % bg_model)
     in_input_fio.write('1  20\n')
     in_input_fio.write('%s\n' % input_file_name)
     in_input_fio.write('Pdef_%s' % phase)
     in_input_fio.close()
+
+####################### raymatrix_input #############################
+
+
+def raymatrix_input(vp_vs_Qs, kernel_quad_km, vertex_file, facet_file, input_file_name):
+    """
+    create in.raymatrix_input_file_name
+    """
+    in_input_fio = open(os.path.join('RESULTS', 'in.raymatrix_%s' % input_file_name), 'w')
+    in_input_fio.write('%s %s %s\n' % (vp_vs_Qs[0], vp_vs_Qs[1], vp_vs_Qs[2]))
+    in_input_fio.write('%s\n' % kernel_quad_km)
+    in_input_fio.write('%s\n' % vertex_file)
+    in_input_fio.write('%s\n' % facet_file)
+    in_input_fio.write('%s' % input_file_name)
+    in_input_fio.close()
+
+    in_input_fio = open(os.path.join('RESULTS', 'in.matrixT.%s' % input_file_name), 'w')
+    in_input_fio.write('matrixT.%s' % input_file_name)
+    in_input_fio.close()
+
+####################### compile_raydata_raymatrix #############################
+
+
+def compile_raydata_raymatrix():
+    """
+    Compile both raydata and raymatrix for further usage
+    """
+
+    cur_dir = os.path.abspath(os.curdir)
+    os.chdir(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src'))
+    os_sys = os.system('./make')
+    if not os_sys == 0:
+        print "raydata can not be compiled properly"
+    os.chdir(cur_dir)
+
+    os.chdir(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src'))
+    os_sys = os.system('./make')
+    if not os_sys == 0:
+        print "raydata can not be compiled properly"
+    os.chdir(cur_dir)
+
+####################### prepare_dir #############################
+
+
+def prepare_dir(input_file_name):
+    """
+    prepare directory for one run of raydata and raymatrix
+    """
+    cur_dir = os.path.abspath(os.curdir)
+    if os.path.isdir(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)):
+        sys.exit("Directory already exists!")
+    os.mkdir(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
+    shutil.copy(os.path.join('RESULTS', input_file_name),
+                os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
+    shutil.copy(os.path.join('RESULTS', 'in.raydata_%s' % input_file_name),
+                os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
+    shutil.copy(os.path.join('RESULTS', 'in.raymatrix_%s' % input_file_name),
+                os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
+    shutil.copy(os.path.join('RESULTS', 'in.matrixT.%s' % input_file_name),
+                os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
+
+    files_glob = glob.glob(os.path.join(os.path.curdir, 'raydata_raymatrix', 'files', '*'))
+    for fi in files_glob:
+        shutil.copy(fi, os.path.join('RESULTS', '%s_dir' % input_file_name))
+
+
+    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src', 'raydata'),
+                os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'raymatrix'),
+                os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'mat2asc'),
+                os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+
+####################### run_raydata_raymatrix #############################
+
+
+def run_raydata_raymatrix(input_file_name):
+    """
+    run both raydata and raymatrix in the directory
+    """
+    cur_dir = os.path.abspath(os.curdir)
+    print '\n======>> run raydata at ./RESULTS/%s_dir' % input_file_name
+    os.chdir(os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+    os_sys = os.system('./raydata < in.raydata_%s' % input_file_name)
+    if not os_sys == 0:
+        print 'raydata was not executed correctly!'
+
+    print '\n======>> run raymatrix at ./RESULTS/%s_dir' % input_file_name
+    os.chdir(os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+    os_sys = os.system('./raymatrix < in.raymatrix_%s' % input_file_name)
+    if not os_sys == 0:
+        print 'raymatrix was not executed correctly!'
+
+    os.chdir(cur_dir)
+
+####################### parallel_raydata_raymatrix #############################
+
+
+def parallel_raydata_raymatrix(filt_array, input_file_name, twinned, phase, min_xcorr, min_depth, max_depth,
+                               min_epi, max_epi, check_clip, bg_model, vp_vs_Qs, kernel_quad_km, vertex_file,
+                               facet_file):
+    """
+    To run raydata and raymatrix in parallel
+    """
+    raydata_input_generator(filt_array=filt_array, input_file_name=input_file_name, twinned=twinned,
+                                    phase=phase, min_xcorr=min_xcorr, min_depth=min_depth, max_depth=max_depth,
+                                    min_epi=min_epi, max_epi=max_epi, check_clip=check_clip)
+    raydata_input(bg_model=bg_model, input_file_name=input_file_name, phase=phase)
+    raymatrix_input(vp_vs_Qs=vp_vs_Qs, kernel_quad_km=kernel_quad_km, vertex_file=vertex_file,
+                            facet_file=facet_file, input_file_name=input_file_name)
+    print '\n======>> prepare output directory at: ./RESULTS/%s_dir' % input_file_name
+    prepare_dir(input_file_name=input_file_name)
+    run_raydata_raymatrix(input_file_name=input_file_name)
+
+####################### check_par_jobs #############################
+
+
+def check_par_jobs(jobs, sleep_time=1):
+    """
+    check whether all the parallel jobs are finished or not
+    """
+    pp_flag = True
+    while pp_flag:
+        for proc in jobs:
+            if proc.is_alive():
+                print '.',
+                sys.stdout.flush()
+                time.sleep(sleep_time)
+                pp_flag = True
+                break
+            else:
+                pp_flag = False
+        if not pp_flag:
+            print '\n\nall %s processes are finished...\n' % len(jobs)
+
+####################### mat2asc_run #############################
+
+
+def mat2asc_run(input_file_name):
+    """
+    run mat2asc in each directory
+    """
+    cur_dir = os.path.abspath(os.curdir)
+    print '\n======>> run mat2asc at ./RESULTS/%s_dir' % input_file_name
+    os.chdir(os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+    os_sys = os.system('./mat2asc < in.matrixT.%s' % input_file_name)
+    if not os_sys == 0:
+        print 'mat2asc was not executed correctly!'
+    os.chdir(cur_dir)
+
+####################### vtk_generator #############################
+
+
+def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, parallel_exec, len_dirs):
+    """
+    VTK file generator out of all the results
+    """
+
+    input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, 1)
+    direname = os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)
+
+    fvertex = open(os.path.join(direname, vertex_file), 'r')
+    fvertex_r = fvertex.readlines()
+
+    ffacet = open(os.path.join(direname, facet_file), 'r')
+    ffacet_r = ffacet.readlines()
+
+    mesh_points = []
+    for i in range(2, len(fvertex_r)):
+        fvertex_r[i] = fvertex_r[i].split()
+        mesh_points.append((float(fvertex_r[i][0]), float(fvertex_r[i][1]), float(fvertex_r[i][2])))
+
+    mesh_facets = []
+    for i in range(1, len(ffacet_r)):
+        ffacet_r[i] = ffacet_r[i].split()
+        # Indexing starts from 0 in facets file!
+        # therefore, we do not need any -1
+        mesh_facets.append([int(ffacet_r[i][0]), int(ffacet_r[i][1]), int(ffacet_r[i][2]), int(ffacet_r[i][3])])
+
+    mval_all = [0]*len(mesh_points)
+    for nj in range(len_dirs):
+        input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, nj+1)
+        direname = os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)
+        print '\n======>> create VTK file at ./RESULTS/%s_dir' % input_file_name
+        asci_file = 'ascii.matrixT.%s' % input_file_name
+        fmatrix = open(os.path.join(direname, asci_file), 'r')
+        fmatrix_r = fmatrix.readlines()
+        mi = []
+        mval = []
+        counter = 0
+        for j in range(5, len(fmatrix_r)):
+            if counter in [0, 1]:
+                print '.',
+            elif counter == 2:
+                counter += 1
+                continue
+            else:
+                counter = 0
+                continue
+            if counter == 0:
+                print "counter: %s %s-- mi" %(counter, j)
+                # mi: matrix index
+                mi_tmp = fmatrix_r[j].split()
+                print "WARNING: INDEXING!"
+                for i in range(len(mi_tmp)):
+                    # IF indexing in ASCII file starts from 0,
+                    # we do not need -1.
+                    # Otherwise we need it!
+                    mi.append(int(mi_tmp[i])-1)
+            else:
+                print "counter: %s %s-- mval" %(counter, j)
+                # mval: matrix value
+                mval_tmp = fmatrix_r[j].split()
+                for i in range(len(mval_tmp)):
+                    mval.append(abs(float(mval_tmp[i])))
+            counter += 1
+
+        for i in range(len(mi)):
+            mval_all[mi[i]] += mval[i]
+
+    vtk = pvtk.VtkData(pvtk.UnstructuredGrid(mesh_points, tetra=mesh_facets), pvtk.PointData(pvtk.Scalars(mval_all)),
+                       'Inversion Grid')
+    vtk.tofile(os.path.join(os.path.curdir, '%s.vtk' % input_file_name.split('_')[0]))
+
+#from py2mat_mod import py2mat
+#py2mat(mesh_facets, 'DT', 'DT')
+#py2mat(mesh_points, 'mp', 'mp')
+
+
+
+
+
+
+
+
+
 
 
 

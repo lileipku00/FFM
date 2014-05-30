@@ -11,7 +11,7 @@
         dimension period(20)
 
         print *,'Give matrix file name (eg matrixT.P):'
-        read(5,fmt='(a)') fname
+        read(*,fmt='(a)') fname
         open(11,file=fname,form='unformatted')
         open(12,file='ascii.'//fname)
 
