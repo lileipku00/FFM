@@ -593,9 +593,16 @@ c           telev=telev+cosi*(-rcr2(1)+6371.0)/vsurf
                 ! Open a new file to collect the results
                 ! this is just for source information (kseg=1)
                 open(44, file='ell_ccor.'//dataf)
-                write(44, *) ptlat, ',', ptlon, ',', rtarget, ',', 
-     &           ecorr, ',', tau, ',', telev 
+                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
+     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
               else if(kseg.eq.9) then
+                ! Kasra
+                ! Open a new file to collect the results
+                ! this is just for station information (kseg=9)
+                open(44, file='ell_ccor.'//dataf)
+                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
+     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
+
                 write(2,95) 3,kd,ptlat,ptlon,rtarget,tau,telev
               endif
             else if(kseg.eq.2) then
@@ -608,8 +615,15 @@ c           telev=telev+cosi*(-rcr2(1)+6371.0)/vsurf
                 ! Open a new file to collect the results
                 ! this is just for source information (kseg=1)
                 open(44, file='ell_ccor.'//dataf)
-                write(44, *) ptlat, ',', ptlon, ',', rtarget, ',', 
-     &           ecorr, ',', tau, ',', telev 
+                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
+     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
+              else if (kd.eq.5) then
+                ! Kasra
+                ! Open a new file to collect the results
+                ! this is just for station information (kd=5)
+                open(44, file='ell_ccor.'//dataf)
+                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
+     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
               endif
               write(2,95) kseg,kd,ptlat,ptlon,rtarget,tau,telev
             else

@@ -41,7 +41,7 @@ import util_ffproc as uf
 # ------------------- INPUT -----------------------------
 xcorr_limit = -1000
 #remote_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
-remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
+remote_dir = '/home/hosseini/Work/Scripts/gitHUB/FFM/INVERSION_STEP01_COMMON_CORRECTION/RESULTS/TEST'
 
 # All stations is already disabled, so the following flag does not change anything
 all_stations = False

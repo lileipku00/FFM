@@ -32,11 +32,11 @@ events_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/P_measure_1_sec_LA
 phase = 'P'
 req_band = 'band01'
 #all_events = ['0274.2009.273.a', '0173.2003.087.a', '0209.2005.016.a', '0306.2008.269.a', '0718.2004.072.a']
-all_events = ['0274.2009.273.a']
-#all_events = True
+#all_events = ['0274.2009.273.a']
+all_events = True
 
 # Input file for raydata:
-input_file_name_part = 'global'
+input_file_name_part = 'applied_ccorr_all'
 twinned = 'None'
 
 # Input file for raymatrix
@@ -46,7 +46,7 @@ vertex_file = 'vertices.USA10'
 facet_file = 'facets.USA10'
 
 # Parallel request:
-parallel_exec = True
+parallel_exec = False
 np_req = 4
 
 ############## CRITERIA ###############
@@ -54,16 +54,19 @@ np_req = 4
 min_depth = -10
 max_depth = 1000
 
-min_xcorr = 0.85
-max_xcorr = 1.1
+min_xcorr = 0.8
+max_xcorr = 1.01
 
 min_epi = 32
-max_epi = 85.01
+max_epi = 95.01
 
 check_clip = True
 #######################################
 
-check_selections = False
+check_selections = True
+run_raydata = True
+run_raymatrix = False
+corr_io_list = [1, 1, 1]     # Ellipticity, crustal correction, elevation
 bg_model = 'IASP91'
 selected_events_add = './info/selected_events_indexed.txt'
 # -------------------------------------------------------
@@ -124,8 +127,12 @@ if not parallel_exec:
                             facet_file=facet_file, input_file_name=input_file_name)
     print '\n======>> prepare output directory at: ./RESULTS/%s_dir' % input_file_name
     outread.prepare_dir(input_file_name=input_file_name)
-    outread.run_raydata_raymatrix(input_file_name=input_file_name)
-    outread.mat2asc_run(input_file_name=input_file_name)
+    outread.run_raydata_raymatrix(input_file_name=input_file_name, raydata=run_raydata, raymatrix=run_raymatrix)
+    filt_array_corr = outread.raydata_ccorr_reader(filt_array=filt_array, input_file_name=input_file_name,
+                                                   corr_io_list=corr_io_list)
+    outread.raydata_ccorr_writer(filt_array_corr=filt_array_corr, events_dir=events_dir)
+    if run_raymatrix:
+        outread.mat2asc_run(input_file_name=input_file_name)
 else:
     outread.compile_raydata_raymatrix()
     if not np.mod(len(filt_array), np_req) == 0:

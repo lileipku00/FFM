@@ -287,22 +287,24 @@ def prepare_dir(input_file_name):
 ####################### run_raydata_raymatrix #############################
 
 
-def run_raydata_raymatrix(input_file_name):
+def run_raydata_raymatrix(input_file_name, raydata=True, raymatrix=True):
     """
     run both raydata and raymatrix in the directory
     """
     cur_dir = os.path.abspath(os.curdir)
-    print '\n======>> run raydata at ./RESULTS/%s_dir' % input_file_name
-    os.chdir(os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
-    os_sys = os.system('./raydata < in.raydata_%s' % input_file_name)
-    if not os_sys == 0:
-        print 'raydata was not executed correctly!'
+    if raydata:
+        print '\n======>> run raydata at ./RESULTS/%s_dir' % input_file_name
+        os.chdir(os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+        os_sys = os.system('./raydata < in.raydata_%s' % input_file_name)
+        if not os_sys == 0:
+            print 'raydata was not executed correctly!'
 
-    print '\n======>> run raymatrix at ./RESULTS/%s_dir' % input_file_name
-    os.chdir(os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
-    os_sys = os.system('./raymatrix < in.raymatrix_%s' % input_file_name)
-    if not os_sys == 0:
-        print 'raymatrix was not executed correctly!'
+    if raymatrix:
+        print '\n======>> run raymatrix at ./RESULTS/%s_dir' % input_file_name
+        os.chdir(os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
+        os_sys = os.system('./raymatrix < in.raymatrix_%s' % input_file_name)
+        if not os_sys == 0:
+            print 'raymatrix was not executed correctly!'
 
     os.chdir(cur_dir)
 
@@ -324,6 +326,48 @@ def parallel_raydata_raymatrix(filt_array, input_file_name, twinned, phase, min_
     print '\n======>> prepare output directory at: ./RESULTS/%s_dir' % input_file_name
     prepare_dir(input_file_name=input_file_name)
     run_raydata_raymatrix(input_file_name=input_file_name)
+
+####################### raydata_ccorr_reader #############################
+
+
+def raydata_ccorr_reader(filt_array, input_file_name, corr_io_list=[1, 1, 1]):
+    """
+    Read common correction results and rewrite the values in filt_array
+    """
+    ccorr_arr = np.loadtxt(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name,
+                                        'ell_ccor.%s' % input_file_name), dtype='S', comments='#', delimiter=',')
+    t_corr = np.zeros(len(ccorr_arr[:, 5]))
+    if corr_io_list[0] == 1:
+        t_corr += ccorr_arr[:, 5].astype(np.float)
+    if corr_io_list[1] == 1:
+        t_corr += ccorr_arr[:, 6].astype(np.float)
+    if corr_io_list[2] == 1:
+        t_corr += ccorr_arr[:, 7].astype(np.float)
+    t_corr = t_corr[0::2] + t_corr[1::2]
+    filt_array[:, 8] = filt_array[:, 8].astype(np.float) - t_corr
+    return filt_array
+
+####################### raydata_ccorr_writer #############################
+
+
+def raydata_ccorr_writer(filt_array_corr, events_dir):
+    """
+    Write similar files as ffproc.ampstt.* but with common correction applied
+    """
+    req_dirs = np.unique(filt_array_corr[:, 23])
+    for r_dir in req_dirs:
+        os.mkdir(os.path.join(os.path.curdir, 'RESULTS', r_dir))
+        os.mkdir(os.path.join(os.path.curdir, 'RESULTS', r_dir, 'outfiles'))
+        filt_array_this_dir = filt_array_corr[filt_array_corr[:, 23] == r_dir]
+        np.savetxt(os.path.join(os.path.curdir, 'RESULTS', r_dir, 'outfiles',
+                                'ffproc.ampstt.%s' % filt_array_this_dir[0, 30]), filt_array_this_dir[:, 0:22],
+                   fmt='%s', delimiter='     ')
+        shutil.copy(os.path.join(events_dir, r_dir, 'outfiles', 'ffproc.source'),
+                    os.path.join(os.curdir, 'RESULTS', r_dir, 'outfiles'))
+        shutil.copy(os.path.join(events_dir, r_dir, 'outfiles', 'ffproc.receivers'),
+                    os.path.join(os.curdir, 'RESULTS', r_dir, 'outfiles'))
+        shutil.copy(os.path.join(events_dir, r_dir, 'outfiles', 'ampinv.source'),
+                    os.path.join(os.curdir, 'RESULTS', r_dir, 'outfiles'))
 
 ####################### check_par_jobs #############################
 
@@ -439,6 +483,78 @@ def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, paral
 #py2mat(mesh_facets, 'DT', 'DT')
 #py2mat(mesh_points, 'mp', 'mp')
 
+####################### vtk_generator_all #############################
+
+
+def vtk_generator_all(direname, vertex_file, facet_file):
+    """
+    VTK file generator out of all the results
+    """
+    
+    ascii_files = glob.glob(os.path.join(direname, 'ascii.matrixT.*'))
+    fvertex = open(os.path.join(direname, vertex_file), 'r')
+    fvertex_r = fvertex.readlines()
+
+    ffacet = open(os.path.join(direname, facet_file), 'r')
+    ffacet_r = ffacet.readlines()
+
+    mesh_points = []
+    for i in range(2, len(fvertex_r)):
+        fvertex_r[i] = fvertex_r[i].split()
+        mesh_points.append((float(fvertex_r[i][0]), float(fvertex_r[i][1]), float(fvertex_r[i][2])))
+
+    mesh_facets = []
+    for i in range(1, len(ffacet_r)):
+        ffacet_r[i] = ffacet_r[i].split()
+        # Indexing starts from 0 in facets file!
+        # therefore, we do not need any -1
+        mesh_facets.append([int(ffacet_r[i][0]), int(ffacet_r[i][1]), int(ffacet_r[i][2]), int(ffacet_r[i][3])])
+
+    mval_all = [0]*len(mesh_points)
+    for nj in range(len(ascii_files)):
+        print '\n======>> create VTK file'
+        fmatrix = open(os.path.join(direname, ascii_files[nj]), 'r')
+        fmatrix_r = fmatrix.readlines()
+        mi = []
+        mval = []
+        counter = 0
+        for j in range(5, len(fmatrix_r)):
+            if counter in [0, 1]:
+                print '.',
+            elif counter == 2:
+                counter += 1
+                continue
+            else:
+                counter = 0
+                continue
+            if counter == 0:
+                print "counter: %s %s-- mi" %(counter, j)
+                # mi: matrix index
+                mi_tmp = fmatrix_r[j].split()
+                print "WARNING: INDEXING!"
+                for i in range(len(mi_tmp)):
+                    # IF indexing in ASCII file starts from 0,
+                    # we do not need -1.
+                    # Otherwise we need it!
+                    mi.append(int(mi_tmp[i])-1)
+            else:
+                print "counter: %s %s-- mval" %(counter, j)
+                # mval: matrix value
+                mval_tmp = fmatrix_r[j].split()
+                for i in range(len(mval_tmp)):
+                    mval.append(abs(float(mval_tmp[i])))
+            counter += 1
+
+        for i in range(len(mi)):
+            mval_all[mi[i]] += mval[i]
+
+    vtk = pvtk.VtkData(pvtk.UnstructuredGrid(mesh_points, tetra=mesh_facets), pvtk.PointData(pvtk.Scalars(mval_all)),
+                       'Inversion Grid')
+    vtk.tofile(os.path.join(direname, 'global_all.vtk'))
+
+#from py2mat_mod import py2mat
+#py2mat(mesh_facets, 'DT', 'DT')
+#py2mat(mesh_points, 'mp', 'mp')
 
 
 
