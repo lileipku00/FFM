@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------
-#   Filename:  inp_file_generator.py
-#   Purpose:   Generate input file to be used by inversion step01 (common corrections)
+#   Filename:  raydata_raymatrix.py
+#   Purpose:   Generate input files and run raydata and raymatrix over measurements (step01 and step02 of inversion)
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -22,9 +22,9 @@ import output_reader as outread
 
 """
 TODO
-- characterization of noise?
+- characterization of noise? (second_line in raydata_input_generator)
+- how input: typical step size (km) for quadrature of kernels
 - check all the parameters with: /home/hosseini/Work/Scripts/FFT/UTILS/FFINVERSION/AMPLITUDES/Programs/write_raydata_input
-- Something is wrong with the station location
 """
 
 # ------------------- INPUT -----------------------------
@@ -32,16 +32,18 @@ events_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/P_measure_1_sec_LA
 phase = 'P'
 req_band = 'band01'
 #all_events = ['0274.2009.273.a', '0173.2003.087.a', '0209.2005.016.a', '0306.2008.269.a', '0718.2004.072.a']
-#all_events = ['0274.2009.273.a']
-all_events = True
+all_events = ['0274.2009.273.a']
+#all_events = True
 
-# Input file for raydata:
+# ================== raydata
 input_file_name_part = 'applied_ccorr_all'
 twinned = 'None'
+max_num_arrival = 1
+delay_wrt_first_arrival = 20
 
-# Input file for raymatrix
-vp_vs_Qs = [1, 0, 0]
-kernel_quad_km = 20.0
+# ================== raymatrix
+vp_vs_Qs = [1, 0, 0]        # on/off switches for model parameters Vp, Vs, Qs
+kernel_quad_km = 20.0       # typical step size (km) for quadrature of kernels
 vertex_file = 'vertices.USA10'
 facet_file = 'facets.USA10'
 
@@ -58,11 +60,12 @@ min_xcorr = 0.8
 max_xcorr = 1.01
 
 min_epi = 32
-max_epi = 95.01
+max_epi = 85.01
 
 check_clip = True
 #######################################
 
+# Diagnosis plots:
 check_selections = True
 run_raydata = True
 run_raymatrix = False
@@ -70,7 +73,63 @@ corr_io_list = [1, 1, 1]     # Ellipticity, crustal correction, elevation
 bg_model = 'IASP91'
 selected_events_add = './info/selected_events_indexed.txt'
 # -------------------------------------------------------
+
+# ======================= PRINTING INPUTS
+print '==============INPUT==================='
+print 'Event DIR: %s' % events_dir
+print 'Requested Phase: %s' % phase
+print 'Requested Band: %s' % req_band
+if all_events == True:
+    print 'Requested events: ALL'
+else:
+    print 'Requested events: %s' % all_events
+if run_raydata:
+    print '--------raydata---------'
+    print 'INPUT name: %s' % input_file_name_part
+    print 'Twinned: %s' % twinned
+    print 'Maximum number of arrivals: %s' % max_num_arrival
+    print 'Delay wrt the first arrival: %s' % delay_wrt_first_arrival
+    if corr_io_list[0] == 1:
+        print 'Correction for Ellipticity: YES'
+    else:
+        print 'Correction for Ellipticity: NO'
+    if corr_io_list[1] == 1:
+        print 'Correction for Crustal time: YES'
+    else:
+        print 'Correction for Crustal time: NO'
+    if corr_io_list[2] == 1:
+        print 'Correction for Elevation: YES'
+    else:
+        print 'Correction for Elevation: NO'
+
+if run_raymatrix:
+    print '-------raymatrix--------'
+    print 'Vp, Vs, Qs : %s' % vp_vs_Qs
+    print 'Kernel Quadrature (KM): %s' % kernel_quad_km
+    print 'Vertex file: %s' % vertex_file
+    print 'Facet file: %s' % facet_file
+if parallel_exec:
+    print '------------------------'
+    print 'Parallel request: YES'
+    print '#Processes: %s' % np_req
+else:
+    print '------------------------'
+    print 'Parallel request: NO'
+print '============CRITERIA=============='
+print '%s <= Depth < %s' % (min_depth, max_depth)
+print '%s <= xcorr < %s' % (min_xcorr, max_xcorr)
+print '%s <= epicentral < %s' % (min_epi, max_epi)
+print 'Check clip: %s' % check_clip
+print 'Background model: %s' % bg_model
+print '==============END INPUT==================='
+# ======================= END PRINTING INPUTS
+
+print '\n\n================================================================='
+print '!!!!!!!!!!!!!!!!!!!! PROGRAM START !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+print '================================================================='
+
 t_start = datetime.datetime.now()
+print 'Start time: %s' % t_start
 
 print '\n======>> reading the event information and filter them %s <= depth < %s' % (min_depth, max_depth)
 passed_event_adds = outread.event_filter(events_dir, selected_events_add=selected_events_add, all_events=all_events,
@@ -122,7 +181,8 @@ if not parallel_exec:
     outread.raydata_input_generator(filt_array=filt_array, input_file_name=input_file_name, twinned=twinned,
                                     phase=phase, min_xcorr=min_xcorr, min_depth=min_depth, max_depth=max_depth,
                                     min_epi=min_epi, max_epi=max_epi, check_clip=check_clip)
-    outread.raydata_input(bg_model=bg_model, input_file_name=input_file_name, phase=phase)
+    outread.raydata_input(bg_model=bg_model, input_file_name=input_file_name, phase=phase,
+                          max_num_arrival=max_num_arrival, delay_wrt_first_arrival=delay_wrt_first_arrival)
     outread.raymatrix_input(vp_vs_Qs=vp_vs_Qs, kernel_quad_km=kernel_quad_km, vertex_file=vertex_file,
                             facet_file=facet_file, input_file_name=input_file_name)
     print '\n======>> prepare output directory at: ./RESULTS/%s_dir' % input_file_name
@@ -158,8 +218,10 @@ else:
                           facet_file=facet_file, parallel_exec=parallel_exec, len_dirs=len(sub_filt_array))
 
 
-print '#event-station pairs: %s' % len(filt_array)
-print 'REGULAR END --- %s sec' % (datetime.datetime.now() - t_start)
+print '\n#event-station pairs: %s' % len(filt_array)
+print '\nREGULAR END --- %s sec' % (datetime.datetime.now() - t_start)
+print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+raw_input('\nPlease press enter to finish the program!')
 
 
 

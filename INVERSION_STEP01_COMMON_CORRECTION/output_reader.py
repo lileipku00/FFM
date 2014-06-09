@@ -14,6 +14,7 @@ import pyvtk as pvtk
 def output_file_reader(evinfo, req_band='band01'):
     """
     This function reads one output file and pass all the values for further analysis in next steps
+    ATTENTION: there is not filtering at this stage, it reads all...
     """
     add_output = evinfo[0]
     empty_array = np.array([])
@@ -25,6 +26,7 @@ def output_file_reader(evinfo, req_band='band01'):
         return empty_array
     rd_output = np.loadtxt(os.path.join(add_output, 'outfiles', 'ffproc.ampstt.%s' % req_band), dtype='S', comments='#')
     sta_output = np.loadtxt(os.path.join(add_output, 'outfiles', 'ffproc.receivers'), dtype='S', comments='#')
+    # Generate an empty array with size of: rd_output_rows X 9
     new_col_cr = np.empty([np.shape(rd_output)[0], 9], dtype=object)
     new_col_cr[:, 0] = (sta_output[:, 5].astype(np.float) - sta_output[:, 6].astype(np.float))/1000.
     new_col_cr[:, 1] = os.path.basename(add_output)
@@ -35,6 +37,7 @@ def output_file_reader(evinfo, req_band='band01'):
     new_col_cr[:, 6] = evinfo[5]
     new_col_cr[:, 7] = evinfo[6]
     new_col_cr[:, 8] = req_band
+    # Now append the rd_output_rows X 9 array to the original rd_output
     output_sta_evname = np.append(rd_output, new_col_cr, 1)
     return output_sta_evname
 
@@ -68,20 +71,21 @@ def event_filter(par_add, selected_events_add, all_events=True, min_dp=-10, max_
             except Exception, e:
                 print 'WARNING: inverted moment tensor was not found: %s' % event_adds[i][0]
                 mrr, mtt, mpp, mrt, mrp, mtp = f_source[7].split()
+            ev_date = UTCDateTime(year=int(ev_year), julday=int(ev_julianday))
+            ev_date_str = '%4s%2s%2s' % (ev_date.year, ev_date.month, ev_date.day)
+            ev_date_str = ev_date_str.replace(' ', '0')
+            ev_time = '%2s%2s%2s' % (ev_hr, ev_min, ev_sec)
+            ev_time = ev_time.replace(' ', '0')
+            ev_id = event_adds[i][1]
+
+            # Check for depth
+            if min_dp <= float(inverted_depth) < max_dp:
+                add_flag = True
+            if add_flag:
+                passed_event_adds.append([event_adds[i][0], ev_date_str, ev_time, ev_id, evlat, evlon, inverted_depth])
         except Exception, e:
             print 'ERROR: %s' % e
-        ev_date = UTCDateTime(year=int(ev_year), julday=int(ev_julianday))
-        ev_date_str = '%4s%2s%2s' % (ev_date.year, ev_date.month, ev_date.day)
-        ev_date_str = ev_date_str.replace(' ', '0')
-        ev_time = '%2s%2s%2s' % (ev_hr, ev_min, ev_sec)
-        ev_time = ev_time.replace(' ', '0')
-        ev_id = event_adds[i][1]
 
-        # Check for depth
-        if min_dp <= float(inverted_depth) < max_dp:
-            add_flag = True
-        if add_flag:
-            passed_event_adds.append([event_adds[i][0], ev_date_str, ev_time, ev_id, evlat, evlon, inverted_depth])
     return passed_event_adds
 
 ####################### array_station_filter #############################
@@ -92,25 +96,29 @@ def array_station_filter(passed_array, min_xcorr=-100, max_xcorr=100, min_epi=0.
     Filters the stations in an array based on the required inputs
     """
     empty_array = np.array([])
+
+    # --------------- XCORRELATION ---------------
     pass_stas_corr_1 = passed_array[passed_array[:, 6].astype(np.float) >= min_xcorr]
-
     if not pass_stas_corr_1.size == 0:
-         pass_stas_corr_2 = pass_stas_corr_1[pass_stas_corr_1[:, 6].astype(np.float) < max_xcorr]
+        pass_stas_final = pass_stas_corr_1[pass_stas_corr_1[:, 6].astype(np.float) < max_xcorr]
     else:
         return empty_array
 
-    passed_stas_epi_1 = pass_stas_corr_2[pass_stas_corr_2[:, 4].astype(np.float) >= min_epi]
+    # --------------- EPICENTRAL ---------------
+    passed_stas_epi_1 = pass_stas_final[pass_stas_final[:, 4].astype(np.float) >= min_epi]
     if not passed_stas_epi_1.size == 0:
-        passed_stas_epi_2 = passed_stas_epi_1[passed_stas_epi_1[:, 4].astype(np.float) < max_epi]
+        passed_stas_final = passed_stas_epi_1[passed_stas_epi_1[:, 4].astype(np.float) < max_epi]
     else:
         return empty_array
-    if passed_stas_epi_2.size == 0:
-        return empty_array
 
+    # --------------- CHECK CLIPS ---------------
     if check_clip:
-        passed_stas = passed_stas_epi_2[passed_stas_epi_2[:, 19].astype(np.float) < 0.1]
+        passed_stas_final = passed_stas_final[passed_stas_final[:, 19].astype(np.float) < 0.1]
 
-    return passed_stas
+    if not passed_stas_final.size == 0:
+        return passed_stas_final
+    else:
+        return empty_array
 
 ####################### check_selection #############################
 
@@ -119,6 +127,8 @@ def check_selection(filt_array, min_xcorr, max_xcorr, min_epi, max_epi, check_cl
     """
     Check whether the selection procedure worked well
     """
+    plt.ion()
+    plt.figure()
     plt.subplot(2, 2, 1)
     plt.plot(filt_array[:, 2].astype(np.float), filt_array[:, 6].astype(np.float), 'r.', linewidth=15)
     plt.xlabel('Latitude', size='large', weight='bold')
@@ -129,6 +139,7 @@ def check_selection(filt_array, min_xcorr, max_xcorr, min_epi, max_epi, check_cl
                linestyles='--')
     plt.hlines(max_xcorr, np.min(filt_array[:, 2].astype(np.float)), np.max(filt_array[:, 2].astype(np.float)), 'k',
                linestyles='--')
+
     plt.subplot(2, 2, 2)
     plt.plot(filt_array[:, 3].astype(np.float), filt_array[:, 6].astype(np.float), 'r.', linewidth=15)
     plt.xlabel('Longitude', size='large', weight='bold')
@@ -139,6 +150,7 @@ def check_selection(filt_array, min_xcorr, max_xcorr, min_epi, max_epi, check_cl
                linestyles='--')
     plt.hlines(max_xcorr, np.min(filt_array[:, 3].astype(np.float)), np.max(filt_array[:, 3].astype(np.float)), 'k',
                linestyles='--')
+
     plt.subplot(2, 2, 3)
     plt.plot(filt_array[:, 4].astype(np.float), filt_array[:, 6].astype(np.float), 'b.', linewidth=15)
     plt.xlabel('Epicentral Distance', size='large', weight='bold')
@@ -147,6 +159,7 @@ def check_selection(filt_array, min_xcorr, max_xcorr, min_epi, max_epi, check_cl
     plt.yticks(size='large', weight='bold')
     plt.vlines(min_epi, min_xcorr, max_xcorr, 'k', linestyles='--')
     plt.vlines(max_epi, min_xcorr, max_xcorr, 'k', linestyles='--')
+
     plt.subplot(2, 2, 4)
     plt.plot(filt_array[:, 19].astype(np.float), filt_array[:, 6].astype(np.float), 'r.', linewidth=15)
     plt.xlabel('Clip value', size='large', weight='bold')
@@ -154,6 +167,26 @@ def check_selection(filt_array, min_xcorr, max_xcorr, min_epi, max_epi, check_cl
     plt.xticks(size='large', weight='bold')
     plt.yticks(size='large', weight='bold')
     plt.show()
+
+####################### compile_raydata_raymatrix #############################
+
+
+def compile_raydata_raymatrix():
+    """
+    Compile both raydata and raymatrix for further usage
+    """
+    cur_dir = os.path.abspath(os.curdir)
+    os.chdir(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src'))
+    os_sys = os.system('./make')
+    if not os_sys == 0:
+        print "raydata can not be compiled properly"
+    os.chdir(cur_dir)
+
+    os.chdir(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src'))
+    os_sys = os.system('./make')
+    if not os_sys == 0:
+        print "raydata can not be compiled properly"
+    os.chdir(cur_dir)
 
 ####################### raydata_input_generator #############################
 
@@ -201,13 +234,13 @@ def raydata_input_generator(filt_array, input_file_name, twinned, phase, min_xco
 ####################### raydata_input #############################
 
 
-def raydata_input(bg_model, input_file_name, phase):
+def raydata_input(bg_model, input_file_name, phase, max_num_arrival, delay_wrt_first_arrival):
     """
     make in.input_file_name for raydata
     """
     in_input_fio = open(os.path.join('RESULTS', 'in.raydata_%s' % input_file_name), 'w')
     in_input_fio.write('%s\n' % bg_model)
-    in_input_fio.write('1  20\n')
+    in_input_fio.write('%s  %s\n' % (max_num_arrival, delay_wrt_first_arrival))
     in_input_fio.write('%s\n' % input_file_name)
     in_input_fio.write('Pdef_%s' % phase)
     in_input_fio.close()
@@ -231,27 +264,6 @@ def raymatrix_input(vp_vs_Qs, kernel_quad_km, vertex_file, facet_file, input_fil
     in_input_fio.write('matrixT.%s' % input_file_name)
     in_input_fio.close()
 
-####################### compile_raydata_raymatrix #############################
-
-
-def compile_raydata_raymatrix():
-    """
-    Compile both raydata and raymatrix for further usage
-    """
-
-    cur_dir = os.path.abspath(os.curdir)
-    os.chdir(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src'))
-    os_sys = os.system('./make')
-    if not os_sys == 0:
-        print "raydata can not be compiled properly"
-    os.chdir(cur_dir)
-
-    os.chdir(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src'))
-    os_sys = os.system('./make')
-    if not os_sys == 0:
-        print "raydata can not be compiled properly"
-    os.chdir(cur_dir)
-
 ####################### prepare_dir #############################
 
 
@@ -263,13 +275,13 @@ def prepare_dir(input_file_name):
     if os.path.isdir(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)):
         sys.exit("Directory already exists!")
     os.mkdir(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.copy(os.path.join('RESULTS', input_file_name),
+    shutil.move(os.path.join('RESULTS', input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.copy(os.path.join('RESULTS', 'in.raydata_%s' % input_file_name),
+    shutil.move(os.path.join('RESULTS', 'in.raydata_%s' % input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.copy(os.path.join('RESULTS', 'in.raymatrix_%s' % input_file_name),
+    shutil.move(os.path.join('RESULTS', 'in.raymatrix_%s' % input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.copy(os.path.join('RESULTS', 'in.matrixT.%s' % input_file_name),
+    shutil.move(os.path.join('RESULTS', 'in.matrixT.%s' % input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
 
     files_glob = glob.glob(os.path.join(os.path.curdir, 'raydata_raymatrix', 'files', '*'))
@@ -277,11 +289,11 @@ def prepare_dir(input_file_name):
         shutil.copy(fi, os.path.join('RESULTS', '%s_dir' % input_file_name))
 
 
-    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src', 'raydata'),
+    shutil.move(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src', 'raydata'),
                 os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'raymatrix'),
+    shutil.move(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'raymatrix'),
                 os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'mat2asc'),
+    shutil.move(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'mat2asc'),
                 os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
 
 ####################### run_raydata_raymatrix #############################
@@ -330,20 +342,38 @@ def parallel_raydata_raymatrix(filt_array, input_file_name, twinned, phase, min_
 ####################### raydata_ccorr_reader #############################
 
 
-def raydata_ccorr_reader(filt_array, input_file_name, corr_io_list=[1, 1, 1]):
+def raydata_ccorr_reader(filt_array, input_file_name, corr_io_list):
     """
     Read common correction results and rewrite the values in filt_array
     """
     ccorr_arr = np.loadtxt(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name,
                                         'ell_ccor.%s' % input_file_name), dtype='S', comments='#', delimiter=',')
-    t_corr = np.zeros(len(ccorr_arr[:, 5]))
-    if corr_io_list[0] == 1:
-        t_corr += ccorr_arr[:, 5].astype(np.float)
-    if corr_io_list[1] == 1:
-        t_corr += ccorr_arr[:, 6].astype(np.float)
-    if corr_io_list[2] == 1:
-        t_corr += ccorr_arr[:, 7].astype(np.float)
-    t_corr = t_corr[0::2] + t_corr[1::2]
+    kd_avail = np.unique(ccorr_arr[:, 0].astype(np.int))
+    t_corr = np.zeros(len(ccorr_arr[ccorr_arr[:, 0].astype(np.int) == kd_avail[0]]))
+    for i in range(len(kd_avail)):
+        tar_ccorr_arr = ccorr_arr[ccorr_arr[:, 0].astype(np.int) == kd_avail[i]]
+        if corr_io_list[0] == 1:
+            t_corr += tar_ccorr_arr[:, 6].astype(np.float)
+        if corr_io_list[1] == 1:
+            t_corr += tar_ccorr_arr[:, 7].astype(np.float)
+        if corr_io_list[2] == 1:
+            t_corr += tar_ccorr_arr[:, 8].astype(np.float)
+    plt.ion()
+    plt.figure()
+    plt.subplot(2, 1, 1)
+    plt.plot(filt_array[:, 2].astype(np.float), t_corr, 'r.')
+    plt.xlabel('Latitude', size='large', weight='bold')
+    plt.ylabel('Common Correction Values', size='large', weight='bold')
+    plt.xticks(size='large', weight='bold')
+    plt.yticks(size='large', weight='bold')
+    plt.subplot(2, 1, 2)
+    plt.plot(filt_array[:, 3].astype(np.float), t_corr, 'r.')
+    plt.xlabel('Longitude', size='large', weight='bold')
+    plt.ylabel('Common Correction Values', size='large', weight='bold')
+    plt.xticks(size='large', weight='bold')
+    plt.yticks(size='large', weight='bold')
+    plt.show()
+
     filt_array[:, 8] = filt_array[:, 8].astype(np.float) - t_corr
     return filt_array
 

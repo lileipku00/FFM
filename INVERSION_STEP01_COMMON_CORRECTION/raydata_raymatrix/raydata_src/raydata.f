@@ -581,51 +581,41 @@ c           telev=telev+cosi*(-rcr2(1)+6371.0)/vsurf
      &          write(13,*) 'Incoming ref tau=',tauref
 
           ! Kasra
-          ! Pdiff is modeled by PPPP (to get correct lat, lon)
+          ! Pdiff is modeled by PP (to get correct lat, lon)
           ! we do not want to write all the corrections
           ! for all the legs
-          ! here only 1, 2, 9 are written and the rest are omitted!
+          ! here only 1, 2, 5 are written and the rest are omitted!
 90        if (phase.eq.'Pdiff') then
             if(kd.ne.2.and.kd.ne.4) then
-              if (kseg.eq.1) then
+              if (kd.eq.1) then
                 write(2,95) 1,kd,ptlat,ptlon,rtarget,tau,telev
                 ! Kasra
                 ! Open a new file to collect the results
                 ! this is just for source information (kseg=1)
                 open(44, file='ell_ccor.'//dataf)
-                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
-     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
-              else if(kseg.eq.9) then
+                write(44, *) kd, ',', stationcode, ',', netw, ',', 
+     &           ptlat, ',', ptlon, ',', rtarget, ',', ecorr, ',', 
+     &           tau, ',', telev 
+              else if(kd.eq.5) then
+                write(2,95) 3,kd,ptlat,ptlon,rtarget,tau,telev
                 ! Kasra
                 ! Open a new file to collect the results
-                ! this is just for station information (kseg=9)
+                ! this is just for station information (kd=5)
                 open(44, file='ell_ccor.'//dataf)
-                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
-     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
-
-                write(2,95) 3,kd,ptlat,ptlon,rtarget,tau,telev
+                write(44, *) kd, ',', stationcode, ',', netw, ',', 
+     &           ptlat, ',', ptlon, ',', rtarget, ',', ecorr, ',', 
+     &           tau, ',', telev 
               endif
             else if(kseg.eq.2) then
               write(2,96) kseg,kd,0,0,rtarget,0,0
             endif  
           else
             if(kd.ne.2.and.kd.ne.4) then
-              if (kseg.eq.1) then
-                ! Kasra
-                ! Open a new file to collect the results
-                ! this is just for source information (kseg=1)
-                open(44, file='ell_ccor.'//dataf)
-                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
-     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
-              else if (kd.eq.5) then
-                ! Kasra
-                ! Open a new file to collect the results
-                ! this is just for station information (kd=5)
-                open(44, file='ell_ccor.'//dataf)
-                write(44, *) stationcode, ',', netw, ',', ptlat, ',', 
-     &           ptlon, ',', rtarget, ',', ecorr, ',', tau, ',', telev 
-              endif
               write(2,95) kseg,kd,ptlat,ptlon,rtarget,tau,telev
+              open(44, file='ell_ccor.'//dataf)
+              write(44, *) kd, ',', stationcode, ',', netw, ',', 
+     &         ptlat, ',', ptlon, ',', rtarget, ',', ecorr, ',', 
+     &         tau, ',', telev 
             else
               write(2,96) kseg,kd,0,0,rtarget,0,0
             endif 
@@ -665,7 +655,7 @@ c           telev=telev+cosi*(-rcr2(1)+6371.0)/vsurf
           
           ! Kasra
           ! In case of Pdiff: We do not want to write all the sensitivity kernels
-          ! since we are modeling Pdiff with PPPP ---> so just the first
+          ! since we are modeling Pdiff with PP ---> so just the first
           ! line
           if (phase.ne.'Pdiff') then
             write(2,120) (y(j,i),j=1,3),c,q0,h11,h22
