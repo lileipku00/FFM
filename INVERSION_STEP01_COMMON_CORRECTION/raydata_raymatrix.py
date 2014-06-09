@@ -56,7 +56,7 @@ np_req = 4
 min_depth = -10
 max_depth = 1000
 
-min_xcorr = 0.95
+min_xcorr = 0.97
 max_xcorr = 1.01
 
 min_epi = 32
@@ -207,7 +207,7 @@ else:
                                                args=(sub_filt_array[nj], input_file_name, twinned, phase, min_xcorr,
                                                min_depth, max_depth, min_epi, max_epi, check_clip, bg_model,
                                                vp_vs_Qs, kernel_quad_km, vertex_file, facet_file,
-                                               max_num_arrival, delay_wrt_first_arrival)))
+                                               max_num_arrival, delay_wrt_first_arrival, run_raydata, run_raymatrix)))
     for nj in range(len(par_job)):
         par_job[nj].start()
     outread.check_par_jobs(par_job, 0.2)

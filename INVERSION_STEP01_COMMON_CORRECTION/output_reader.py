@@ -325,20 +325,20 @@ def run_raydata_raymatrix(input_file_name, raydata=True, raymatrix=True):
 
 def parallel_raydata_raymatrix(filt_array, input_file_name, twinned, phase, min_xcorr, min_depth, max_depth,
                                min_epi, max_epi, check_clip, bg_model, vp_vs_Qs, kernel_quad_km, vertex_file,
-                               facet_file, max_num_arrival, delay_wrt_first_arrival):
+                               facet_file, max_num_arrival, delay_wrt_first_arrival, run_raydata, run_raymatrix):
     """
     To run raydata and raymatrix in parallel
     """
     raydata_input_generator(filt_array=filt_array, input_file_name=input_file_name, twinned=twinned,
-                                    phase=phase, min_xcorr=min_xcorr, min_depth=min_depth, max_depth=max_depth,
-                                    min_epi=min_epi, max_epi=max_epi, check_clip=check_clip)
+                            phase=phase, min_xcorr=min_xcorr, min_depth=min_depth,
+                            max_depth=max_depth, min_epi=min_epi, max_epi=max_epi, check_clip=check_clip)
     raydata_input(bg_model=bg_model, input_file_name=input_file_name, phase=phase,
                   max_num_arrival=max_num_arrival, delay_wrt_first_arrival=delay_wrt_first_arrival)
     raymatrix_input(vp_vs_Qs=vp_vs_Qs, kernel_quad_km=kernel_quad_km, vertex_file=vertex_file,
-                            facet_file=facet_file, input_file_name=input_file_name)
+                    facet_file=facet_file, input_file_name=input_file_name)
     print '\n======>> prepare output directory at: ./RESULTS/%s_dir' % input_file_name
     prepare_dir(input_file_name=input_file_name)
-    run_raydata_raymatrix(input_file_name=input_file_name)
+    run_raydata_raymatrix(input_file_name=input_file_name, raydata=run_raydata, raymatrix=run_raymatrix)
 
 ####################### raydata_ccorr_reader #############################
 
@@ -418,8 +418,8 @@ def check_par_jobs(jobs, sleep_time=1):
                 break
             else:
                 pp_flag = False
-        if not pp_flag:
-            print '\n\nall %s processes are finished...\n' % len(jobs)
+    if not pp_flag:
+        print '\n\nAll %s processes are finished...\n' % len(jobs)
 
 ####################### mat2asc_run #############################
 
@@ -443,76 +443,56 @@ def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, paral
     """
     VTK file generator out of all the results
     """
-
+    print '\n======>> Creating VTK file'
     input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, 1)
     direname = os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)
 
-    fvertex = open(os.path.join(direname, vertex_file), 'r')
-    fvertex_r = fvertex.readlines()
+    print '======>> Load Vertex file'
+    mesh_points = np.loadtxt(os.path.join(direname, vertex_file), skiprows=2, comments='#')
+    print '======>> Load Facet file'
+    # Indexing starts from 0 in facets file!
+    # therefore, we do not need any -1
+    mesh_facets = np.loadtxt(os.path.join(direname, facet_file), dtype=np.int, skiprows=1, comments='#')
 
-    ffacet = open(os.path.join(direname, facet_file), 'r')
-    ffacet_r = ffacet.readlines()
-
-    mesh_points = []
-    for i in range(2, len(fvertex_r)):
-        fvertex_r[i] = fvertex_r[i].split()
-        mesh_points.append((float(fvertex_r[i][0]), float(fvertex_r[i][1]), float(fvertex_r[i][2])))
-
-    mesh_facets = []
-    for i in range(1, len(ffacet_r)):
-        ffacet_r[i] = ffacet_r[i].split()
-        # Indexing starts from 0 in facets file!
-        # therefore, we do not need any -1
-        mesh_facets.append([int(ffacet_r[i][0]), int(ffacet_r[i][1]), int(ffacet_r[i][2]), int(ffacet_r[i][3])])
-
-    mval_all = [0]*len(mesh_points)
+    mat_val_all = [0]*len(mesh_points)
     for nj in range(len_dirs):
         input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, nj+1)
         direname = os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)
-        print '\n======>> create VTK file at ./RESULTS/%s_dir' % input_file_name
-        asci_file = 'ascii.matrixT.%s' % input_file_name
-        fmatrix = open(os.path.join(direname, asci_file), 'r')
+        print '======>> create VTK file at ./RESULTS/%s_dir' % input_file_name
+        ascii_file = 'ascii.matrixT.%s' % input_file_name
+        fmatrix = open(os.path.join(direname, ascii_file), 'r')
         fmatrix_r = fmatrix.readlines()
-        mi = []
-        mval = []
+        mat_indx = []
+        mat_val = []
         counter = 0
         for j in range(5, len(fmatrix_r)):
-            if counter in [0, 1]:
-                print '.',
-            elif counter == 2:
-                counter += 1
-                continue
-            else:
+            if counter == 3:
                 counter = 0
                 continue
             if counter == 0:
-                print "counter: %s %s-- mi" %(counter, j)
-                # mi: matrix index
-                mi_tmp = fmatrix_r[j].split()
-                print "WARNING: INDEXING!"
-                for i in range(len(mi_tmp)):
+                # mat_indx: matrix index
+                mat_indx_tmp = fmatrix_r[j].split()
+                for i in range(len(mat_indx_tmp)):
                     # IF indexing in ASCII file starts from 0,
                     # we do not need -1.
                     # Otherwise we need it!
-                    mi.append(int(mi_tmp[i])-1)
-            else:
-                print "counter: %s %s-- mval" %(counter, j)
-                # mval: matrix value
-                mval_tmp = fmatrix_r[j].split()
-                for i in range(len(mval_tmp)):
-                    mval.append(abs(float(mval_tmp[i])))
+                    mat_indx.append(int(mat_indx_tmp[i])-1)
+            if counter == 1:
+                # mat_val: matrix value
+                mat_val_tmp = fmatrix_r[j].split()
+                for i in range(len(mat_val_tmp)):
+                    mat_val.append(abs(float(mat_val_tmp[i])))
             counter += 1
 
-        for i in range(len(mi)):
-            mval_all[mi[i]] += mval[i]
+        for i in range(len(mat_indx)):
+            mat_val_all[mat_indx[i]] += mat_val[i]
 
-    vtk = pvtk.VtkData(pvtk.UnstructuredGrid(mesh_points, tetra=mesh_facets), pvtk.PointData(pvtk.Scalars(mval_all)),
-                       'Inversion Grid')
+    vtk = pvtk.VtkData(pvtk.UnstructuredGrid(mesh_points, tetra=mesh_facets),
+                       pvtk.PointData(pvtk.Scalars(mat_val_all)), 'Inversion Grid')
+    print '\n\n=================='
+    print "WARNING: INDEXING!"
+    print '=================='
     vtk.tofile(os.path.join(os.path.curdir, '%s.vtk' % input_file_name.split('_')[0]))
-
-#from py2mat_mod import py2mat
-#py2mat(mesh_facets, 'DT', 'DT')
-#py2mat(mesh_points, 'mp', 'mp')
 
 ####################### vtk_generator_all #############################
 
