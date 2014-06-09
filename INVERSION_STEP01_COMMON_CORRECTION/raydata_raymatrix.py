@@ -36,7 +36,7 @@ all_events = ['0274.2009.273.a']
 #all_events = True
 
 # ================== raydata
-input_file_name_part = 'applied_ccorr_all'
+input_file_name_part = 'test'
 twinned = 'None'
 max_num_arrival = 1
 delay_wrt_first_arrival = 20
@@ -48,7 +48,7 @@ vertex_file = 'vertices.USA10'
 facet_file = 'facets.USA10'
 
 # Parallel request:
-parallel_exec = False
+parallel_exec = True
 np_req = 4
 
 ############## CRITERIA ###############
@@ -56,7 +56,7 @@ np_req = 4
 min_depth = -10
 max_depth = 1000
 
-min_xcorr = 0.8
+min_xcorr = 0.95
 max_xcorr = 1.01
 
 min_epi = 32
@@ -68,7 +68,7 @@ check_clip = True
 # Diagnosis plots:
 check_selections = True
 run_raydata = True
-run_raymatrix = False
+run_raymatrix = True
 corr_io_list = [1, 1, 1]     # Ellipticity, crustal correction, elevation
 bg_model = 'IASP91'
 selected_events_add = './info/selected_events_indexed.txt'
@@ -205,8 +205,9 @@ else:
         input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, nj+1)
         par_job.append(multiprocessing.Process(target=outread.parallel_raydata_raymatrix,
                                                args=(sub_filt_array[nj], input_file_name, twinned, phase, min_xcorr,
-                                                min_depth, max_depth, min_epi, max_epi, check_clip, bg_model,
-                                                vp_vs_Qs, kernel_quad_km, vertex_file, facet_file)))
+                                               min_depth, max_depth, min_epi, max_epi, check_clip, bg_model,
+                                               vp_vs_Qs, kernel_quad_km, vertex_file, facet_file,
+                                               max_num_arrival, delay_wrt_first_arrival)))
     for nj in range(len(par_job)):
         par_job[nj].start()
     outread.check_par_jobs(par_job, 0.2)

@@ -275,13 +275,13 @@ def prepare_dir(input_file_name):
     if os.path.isdir(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)):
         sys.exit("Directory already exists!")
     os.mkdir(os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.move(os.path.join('RESULTS', input_file_name),
+    shutil.copy(os.path.join('RESULTS', input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.move(os.path.join('RESULTS', 'in.raydata_%s' % input_file_name),
+    shutil.copy(os.path.join('RESULTS', 'in.raydata_%s' % input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.move(os.path.join('RESULTS', 'in.raymatrix_%s' % input_file_name),
+    shutil.copy(os.path.join('RESULTS', 'in.raymatrix_%s' % input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.move(os.path.join('RESULTS', 'in.matrixT.%s' % input_file_name),
+    shutil.copy(os.path.join('RESULTS', 'in.matrixT.%s' % input_file_name),
                 os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name))
 
     files_glob = glob.glob(os.path.join(os.path.curdir, 'raydata_raymatrix', 'files', '*'))
@@ -289,11 +289,11 @@ def prepare_dir(input_file_name):
         shutil.copy(fi, os.path.join('RESULTS', '%s_dir' % input_file_name))
 
 
-    shutil.move(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src', 'raydata'),
+    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raydata_src', 'raydata'),
                 os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.move(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'raymatrix'),
+    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'raymatrix'),
                 os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
-    shutil.move(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'mat2asc'),
+    shutil.copy(os.path.join(os.curdir, 'raydata_raymatrix', 'raymatrix_src', 'mat2asc'),
                 os.path.join(cur_dir, 'RESULTS', '%s_dir' % input_file_name))
 
 ####################### run_raydata_raymatrix #############################
@@ -325,14 +325,15 @@ def run_raydata_raymatrix(input_file_name, raydata=True, raymatrix=True):
 
 def parallel_raydata_raymatrix(filt_array, input_file_name, twinned, phase, min_xcorr, min_depth, max_depth,
                                min_epi, max_epi, check_clip, bg_model, vp_vs_Qs, kernel_quad_km, vertex_file,
-                               facet_file):
+                               facet_file, max_num_arrival, delay_wrt_first_arrival):
     """
     To run raydata and raymatrix in parallel
     """
     raydata_input_generator(filt_array=filt_array, input_file_name=input_file_name, twinned=twinned,
                                     phase=phase, min_xcorr=min_xcorr, min_depth=min_depth, max_depth=max_depth,
                                     min_epi=min_epi, max_epi=max_epi, check_clip=check_clip)
-    raydata_input(bg_model=bg_model, input_file_name=input_file_name, phase=phase)
+    raydata_input(bg_model=bg_model, input_file_name=input_file_name, phase=phase,
+                  max_num_arrival=max_num_arrival, delay_wrt_first_arrival=delay_wrt_first_arrival)
     raymatrix_input(vp_vs_Qs=vp_vs_Qs, kernel_quad_km=kernel_quad_km, vertex_file=vertex_file,
                             facet_file=facet_file, input_file_name=input_file_name)
     print '\n======>> prepare output directory at: ./RESULTS/%s_dir' % input_file_name
