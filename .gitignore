@@ -1,5 +1,6 @@
 .idea
 STATISTICS/statistics
+STATISTICS/statistics_all
 CHECKED.txt
 PYSPEC/util_PyYSPEC.pyc
 */*.pyc
