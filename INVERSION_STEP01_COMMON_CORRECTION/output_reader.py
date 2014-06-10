@@ -441,24 +441,22 @@ def mat2asc_run(input_file_name):
 
 def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, parallel_exec, len_dirs):
     """
-    VTK file generator out of all the results
+    VTK file generator out of all the results for one complete run
     """
     print '\n======>> Creating VTK file'
     input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, 1)
     direname = os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)
 
-    print '======>> Load Vertex file'
+    print '------> Load Vertex file'
     mesh_points = np.loadtxt(os.path.join(direname, vertex_file), skiprows=2, comments='#')
-    print '======>> Load Facet file'
-    # Indexing starts from 0 in facets file!
-    # therefore, we do not need any -1
+    print '------> Load Facet file'
     mesh_facets = np.loadtxt(os.path.join(direname, facet_file), dtype=np.int, skiprows=1, comments='#')
 
-    mat_val_all = [0]*len(mesh_points)
+    mat_val_all = [0.0]*len(mesh_points)
     for nj in range(len_dirs):
         input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, nj+1)
         direname = os.path.join(os.path.curdir, 'RESULTS', '%s_dir' % input_file_name)
-        print '======>> create VTK file at ./RESULTS/%s_dir' % input_file_name
+        print '------> create VTK file at ./RESULTS/%s_dir' % input_file_name
         ascii_file = 'ascii.matrixT.%s' % input_file_name
         fmatrix = open(os.path.join(direname, ascii_file), 'r')
         fmatrix_r = fmatrix.readlines()
@@ -476,7 +474,7 @@ def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, paral
                     # IF indexing in ASCII file starts from 0,
                     # we do not need -1.
                     # Otherwise we need it!
-                    mat_indx.append(int(mat_indx_tmp[i])-1)
+                    mat_indx.append(int(mat_indx_tmp[i]))
             if counter == 1:
                 # mat_val: matrix value
                 mat_val_tmp = fmatrix_r[j].split()
@@ -488,7 +486,8 @@ def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, paral
             mat_val_all[mat_indx[i]] += mat_val[i]
 
     vtk = pvtk.VtkData(pvtk.UnstructuredGrid(mesh_points, tetra=mesh_facets),
-                       pvtk.PointData(pvtk.Scalars(mat_val_all)), 'Inversion Grid')
+                       pvtk.PointData(pvtk.Scalars(mat_val_all, name='kernel_value')),
+                       'Inversion Grid')
     print '\n\n=================='
     print "WARNING: INDEXING!"
     print '=================='
@@ -499,74 +498,57 @@ def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, paral
 
 def vtk_generator_all(direname, vertex_file, facet_file):
     """
-    VTK file generator out of all the results
+    VTK file generator out of all the results of all runs
+    ATTENTION: ascii.matrix.* should be moved to one dir (direname)
+    INFO:
+    facet file is indexed from 0
+    When describing the cells in terms of point indices, the points must be indexed starting at 0.
     """
-    
+    print '\n======>> Creating VTK file'
     ascii_files = glob.glob(os.path.join(direname, 'ascii.matrixT.*'))
-    fvertex = open(os.path.join(direname, vertex_file), 'r')
-    fvertex_r = fvertex.readlines()
 
-    ffacet = open(os.path.join(direname, facet_file), 'r')
-    ffacet_r = ffacet.readlines()
+    print '------> Load Vertex file'
+    mesh_points = np.loadtxt(os.path.join(direname, vertex_file), skiprows=2, comments='#')
+    print '------> Load Facet file'
+    mesh_facets = np.loadtxt(os.path.join(direname, facet_file), dtype=np.int, skiprows=1, comments='#')
 
-    mesh_points = []
-    for i in range(2, len(fvertex_r)):
-        fvertex_r[i] = fvertex_r[i].split()
-        mesh_points.append((float(fvertex_r[i][0]), float(fvertex_r[i][1]), float(fvertex_r[i][2])))
-
-    mesh_facets = []
-    for i in range(1, len(ffacet_r)):
-        ffacet_r[i] = ffacet_r[i].split()
-        # Indexing starts from 0 in facets file!
-        # therefore, we do not need any -1
-        mesh_facets.append([int(ffacet_r[i][0]), int(ffacet_r[i][1]), int(ffacet_r[i][2]), int(ffacet_r[i][3])])
-
-    mval_all = [0]*len(mesh_points)
+    mat_val_all = [0.0]*len(mesh_points)
     for nj in range(len(ascii_files)):
-        print '\n======>> create VTK file'
-        fmatrix = open(os.path.join(direname, ascii_files[nj]), 'r')
+        print '\n------> create VTK file %s' % ascii_files[nj]
+        fmatrix = open(os.path.join(ascii_files[nj]), 'r')
         fmatrix_r = fmatrix.readlines()
-        mi = []
-        mval = []
+        mat_indx = []
+        mat_val = []
         counter = 0
         for j in range(5, len(fmatrix_r)):
-            if counter in [0, 1]:
-                print '.',
-            elif counter == 2:
-                counter += 1
-                continue
-            else:
+            if counter == 3:
                 counter = 0
                 continue
             if counter == 0:
-                print "counter: %s %s-- mi" %(counter, j)
-                # mi: matrix index
-                mi_tmp = fmatrix_r[j].split()
-                print "WARNING: INDEXING!"
-                for i in range(len(mi_tmp)):
+                # mat_indx: matrix index
+                mat_indx_tmp = fmatrix_r[j].split()
+                for i in range(len(mat_indx_tmp)):
                     # IF indexing in ASCII file starts from 0,
                     # we do not need -1.
                     # Otherwise we need it!
-                    mi.append(int(mi_tmp[i])-1)
-            else:
-                print "counter: %s %s-- mval" %(counter, j)
-                # mval: matrix value
-                mval_tmp = fmatrix_r[j].split()
-                for i in range(len(mval_tmp)):
-                    mval.append(abs(float(mval_tmp[i])))
+                    mat_indx.append(int(mat_indx_tmp[i]))
+            if counter == 1:
+                # mat_val: matrix value
+                mat_val_tmp = fmatrix_r[j].split()
+                for i in range(len(mat_val_tmp)):
+                    mat_val.append(abs(float(mat_val_tmp[i])))
             counter += 1
 
-        for i in range(len(mi)):
-            mval_all[mi[i]] += mval[i]
+        for i in range(len(mat_indx)):
+            mat_val_all[mat_indx[i]] += mat_val[i]
 
-    vtk = pvtk.VtkData(pvtk.UnstructuredGrid(mesh_points, tetra=mesh_facets), pvtk.PointData(pvtk.Scalars(mval_all)),
+    vtk = pvtk.VtkData(pvtk.UnstructuredGrid(mesh_points, tetra=mesh_facets),
+                       pvtk.PointData(pvtk.Scalars(mat_val_all, name='kernel_value')),
                        'Inversion Grid')
+    print '\n\n=================='
+    print "WARNING: INDEXING!"
+    print '=================='
     vtk.tofile(os.path.join(direname, 'global_all.vtk'))
-
-#from py2mat_mod import py2mat
-#py2mat(mesh_facets, 'DT', 'DT')
-#py2mat(mesh_points, 'mp', 'mp')
-
 
 
 

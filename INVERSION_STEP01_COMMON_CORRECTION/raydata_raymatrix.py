@@ -25,6 +25,7 @@ TODO
 - characterization of noise? (second_line in raydata_input_generator)
 - how input: typical step size (km) for quadrature of kernels
 - check all the parameters with: /home/hosseini/Work/Scripts/FFT/UTILS/FFINVERSION/AMPLITUDES/Programs/write_raydata_input
+- Indexing in raymatrix starts from 0?
 """
 
 # ------------------- INPUT -----------------------------
