@@ -120,6 +120,28 @@ def array_station_filter(passed_array, min_xcorr=-100, max_xcorr=100, min_epi=0.
     else:
         return empty_array
 
+####################### array_station_filter_mark #############################
+
+
+def array_station_filter_mark(all_output_files, min_xcorr=-100, max_xcorr=100, min_epi=0., max_epi=360.,
+                              check_clip=True):
+    """
+    Filters the stations in an array based on the required inputs
+    """
+    # --------------- XCORRELATION ---------------
+    all_output_files[:, 10, :][all_output_files[:, 6, :].astype(np.float) < min_xcorr] = -1
+    all_output_files[:, 10, :][all_output_files[:, 6, :].astype(np.float) >= max_xcorr] = -1
+
+    # --------------- EPICENTRAL ---------------
+    all_output_files[:, 10, :][all_output_files[:, 4, :].astype(np.float) < min_epi] = -1
+    all_output_files[:, 10, :][all_output_files[:, 4, :].astype(np.float) >= max_epi] = -1
+
+    # --------------- CHECK CLIPS ---------------
+    if check_clip:
+        all_output_files[:, 10, :][all_output_files[:, 19, :].astype(np.float) > 0.1] = -1
+
+    return all_output_files
+
 ####################### check_selection #############################
 
 
@@ -167,6 +189,121 @@ def check_selection(filt_array, min_xcorr, max_xcorr, min_epi, max_epi, check_cl
     plt.xticks(size='large', weight='bold')
     plt.yticks(size='large', weight='bold')
     plt.show()
+
+####################### axi_kernel_receiver_writer #############################
+
+
+def axi_kernel_receiver_writer(evstas):
+    """
+    Create AXISEM receiver.dat file for further analysis using AXISEM
+    """
+    print '\n======>> Create AXISEM receiver.dat file for Kernel calculations'
+    if not os.path.isdir(os.path.join(os.path.curdir, 'RESULTS', evstas[0, 23, 0])):
+        os.mkdir(os.path.join(os.path.curdir, 'RESULTS', evstas[0, 23, 0]))
+    else:
+        print 'Directory already exists: %s' % os.path.join(os.path.curdir, 'RESULTS', evstas[0, 23, 0])
+        return
+
+    band_period = {'band01': 30.0, 'band02': 21.2, 'band03': 15.0, 'band04': 10.6, 'band05': 7.5, 'band06': 5.3,
+                   'band07': 3.7, 'band08': 2.7}
+
+    line_write = []
+    counter = 0
+    for j in range(evstas.shape[0]):
+        len_freq_avail = len(evstas[j, :, evstas[j, 10, :] != -1])
+        if len_freq_avail == 0:
+            continue
+        third_line = '%s_%s  %s  %s  %s\n' % (evstas[j, 5, 0].split('.')[0], evstas[j, 5, 0].split('.')[1],
+                                              evstas[j, 2, 0], evstas[j, 3, 0], len_freq_avail)
+        line_write.append(third_line)
+        for i in range(len(evstas[j, 10, :])):
+            if evstas[j, 10, i] == -1:
+                continue
+            period = band_period[evstas[j, 30, i]]
+            forth_line = 'kernel_%s  Gabor_%s  CC  %s  %s\n' \
+                         % (str(period).replace('.', '_'), period, evstas[j, 17, i],
+                            float(evstas[j, 17, i])+float(evstas[j, 18, i]))
+            line_write.append(forth_line)
+        counter += 1
+    first_line = '%i\n' % counter
+    second_line = 'vp  Z\n'
+    receiver_fio = open(os.path.join(os.path.curdir, 'RESULTS', evstas[0, 23, 0], 'receiver.dat'), 'w')
+    receiver_fio.writelines(first_line)
+    receiver_fio.writelines(second_line)
+    for ln in line_write:
+        receiver_fio.writelines(ln)
+    receiver_fio.close()
+
+    readme_fio = open(os.path.join(os.path.curdir, 'RESULTS', evstas[0, 23, 0], 'README.txt'), 'w')
+    readme_fio.writelines('number_of_receivers: %i\n' % counter)
+    readme_fio.close()
+
+    #plt.ion()
+    #plt.figure()
+    #plt.subplot(2, 1, 1)
+    #plt.plot(filt_array[:, 2].astype(np.float), t_corr, 'r.')
+    #plt.xlabel('Latitude', size='large', weight='bold')
+    #plt.ylabel('Common Correction Values', size='large', weight='bold')
+    #plt.xticks(size='large', weight='bold')
+    #plt.yticks(size='large', weight='bold')
+    #plt.subplot(2, 1, 2)
+    #plt.plot(filt_array[:, 3].astype(np.float), t_corr, 'r.')
+    #plt.xlabel('Longitude', size='large', weight='bold')
+    #plt.ylabel('Common Correction Values', size='large', weight='bold')
+    #plt.xticks(size='large', weight='bold')
+    #plt.yticks(size='large', weight='bold')
+    #plt.show
+
+####################### axi_kernel_receiver_combiner #############################
+
+
+def axi_kernel_receiver_combiner(measure_par_add, measures):
+    """
+    For several type of measurements (P, Pdiff, ...), combine the receiver.dat file
+    Usage:
+    from output_reader import axi_kernel_receiver_combiner
+    axi_kernel_receiver_combiner('./RESULTS', ['P', 'Pdiff'])
+    """
+    ls_all_events = np.array([], dtype='object')
+    for i in range(len(measures)):
+        ls_all_events = np.append(ls_all_events, glob.glob(os.path.join(measure_par_add, measures[i], '*.*.*.*')))
+    for i in range(len(ls_all_events)):
+        ls_all_events[i] = os.path.basename(ls_all_events[i])
+    ls_all_events_unique = np.unique(ls_all_events)
+    for i in range(len(ls_all_events_unique)):
+        cont_flag = True
+        for j in range(len(measures)):
+            if not os.path.isfile(os.path.join(measure_par_add, measures[j], ls_all_events_unique[i], 'receiver.dat')):
+                cont_flag = False
+        if not cont_flag:
+            continue
+        all_staevs = []
+        len_staev = 0
+        for j in range(len(measures)):
+            receiver_tmp_fio = open(os.path.join(measure_par_add, measures[j], ls_all_events_unique[i],
+                                                 'receiver.dat'), 'r')
+            receiver_tmp = receiver_tmp_fio.readlines()
+            all_staevs.append(receiver_tmp[2:])
+
+            len_staev_fio = open(os.path.join(measure_par_add, measures[j], ls_all_events_unique[i],
+                                              'README.txt'), 'r')
+            len_staev += int(len_staev_fio.readlines()[0].split(':')[1])
+        receiver_all_fio = open(os.path.join(measure_par_add,
+                                             'receiver_%s.dat' % ls_all_events_unique[i].replace('.', '_')),
+                                'w')
+        receiver_all_fio.writelines('%i\n' % len_staev)
+        receiver_all_fio.writelines('vp   Z\n')
+        for ln_all in all_staevs:
+            receiver_all_fio.writelines(ln_all)
+        receiver_all_fio.close()
+
+    print '\n================================='
+    print 'WARNING: vp and Z are hard coded!'
+    print '================================='
+
+
+
+
 
 ####################### compile_raydata_raymatrix #############################
 
@@ -442,6 +579,10 @@ def mat2asc_run(input_file_name):
 def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, parallel_exec, len_dirs):
     """
     VTK file generator out of all the results for one complete run
+    INFO:
+    - facet file is indexed from 0
+    - BUT! ascii.* files are indexed from 1, so we need to subtract them (-1)
+    - When describing the cells in terms of point indices, the points must be indexed starting at 0.
     """
     print '\n======>> Creating VTK file'
     input_file_name = '%s_%s_%s' % (input_file_name_part, req_band, 1)
@@ -474,7 +615,7 @@ def vtk_generator(input_file_name_part, req_band, vertex_file, facet_file, paral
                     # IF indexing in ASCII file starts from 0,
                     # we do not need -1.
                     # Otherwise we need it!
-                    mat_indx.append(int(mat_indx_tmp[i]))
+                    mat_indx.append(int(mat_indx_tmp[i])-1)
             if counter == 1:
                 # mat_val: matrix value
                 mat_val_tmp = fmatrix_r[j].split()
@@ -501,8 +642,9 @@ def vtk_generator_all(direname, vertex_file, facet_file):
     VTK file generator out of all the results of all runs
     ATTENTION: ascii.matrix.* should be moved to one dir (direname)
     INFO:
-    facet file is indexed from 0
-    When describing the cells in terms of point indices, the points must be indexed starting at 0.
+    - facet file is indexed from 0
+    - BUT! ascii.* files are indexed from 1, so we need to subtract them (-1)
+    - When describing the cells in terms of point indices, the points must be indexed starting at 0.
     """
     print '\n======>> Creating VTK file'
     ascii_files = glob.glob(os.path.join(direname, 'ascii.matrixT.*'))
@@ -531,7 +673,7 @@ def vtk_generator_all(direname, vertex_file, facet_file):
                     # IF indexing in ASCII file starts from 0,
                     # we do not need -1.
                     # Otherwise we need it!
-                    mat_indx.append(int(mat_indx_tmp[i]))
+                    mat_indx.append(int(mat_indx_tmp[i])-1)
             if counter == 1:
                 # mat_val: matrix value
                 mat_val_tmp = fmatrix_r[j].split()

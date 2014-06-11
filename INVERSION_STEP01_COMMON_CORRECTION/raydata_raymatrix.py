@@ -33,7 +33,7 @@ events_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/P_measure_1_sec_LA
 phase = 'P'
 req_band = 'band01'
 #all_events = ['0274.2009.273.a', '0173.2003.087.a', '0209.2005.016.a', '0306.2008.269.a', '0718.2004.072.a']
-all_events = ['0274.2009.273.a']
+all_events = ['0274.2009.273.a', '0173.2003.087.a']
 #all_events = True
 
 # ================== raydata
@@ -49,7 +49,7 @@ vertex_file = 'vertices.USA10'
 facet_file = 'facets.USA10'
 
 # Parallel request:
-parallel_exec = True
+parallel_exec = False
 np_req = 4
 
 ############## CRITERIA ###############
@@ -57,7 +57,7 @@ np_req = 4
 min_depth = -10
 max_depth = 1000
 
-min_xcorr = 0.97
+min_xcorr = 0.85
 max_xcorr = 1.01
 
 min_epi = 32
