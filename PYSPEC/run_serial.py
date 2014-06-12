@@ -20,12 +20,12 @@ import subprocess
 import sys
 
 # ------------------- INPUT -----------------------------
-req_phase = 'P'
+req_phase = 'PP'
 req_solver = 'yspec'
 req_processes = '40'
 update_all = False
 add_event_info = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/FFM/INITIALIZATION/results'
-add_proc_ev = '/import/neptun-helles/hosseini/FFM_RESULTS/P_measure_1_sec_LAMBDA_1-5_32_100'
+add_proc_ev = '/import/neptun-helles/hosseini/FFM_RESULTS/PP_measure_1_sec_LAMBDA_1-5_60_180'
 add_runff = '/home/hosseini/FFINVERSION/AMPLITUDES/Programs/ffproc/FFsetup'
 # -------------------------------------------------------
 
