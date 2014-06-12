@@ -24,13 +24,12 @@ import util_ffproc as uf
 
 # ------------------- INPUT -----------------------------
 # It should be changed to -100 (large negative number) or so for nr_cc!!
-xcorr_limit = -100
-#remote_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
+xcorr_limit = 0.8
 #remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
-remote_dir = '/home/hosseini/Work/Scripts/gitHUB/FFM/INVERSION_STEP01_COMMON_CORRECTION/RESULTS/TEST'
+remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/P_measure_1_sec_LAMBDA_1-5_32_100'
 
-nr_cc = True
-line_plot = True
+nr_cc = False
+line_plot = False
 
 # All stations is already disabled, so the following flag does not change anything
 all_stations = False
@@ -46,7 +45,7 @@ remove_GSN_median = True
 # ------------------- nr_dt -----------------------------
 
 
-def nr_dt(t_shift_array, max_ts=30., width=0.01, num_bands=1, enum=0, leg='default', line_plot=False):
+def nr_dt(t_shift_array, max_ts=2., width=0.01, num_bands=1, enum=0, leg='default', line_plot=False):
     """
     histogram plot for all measured traveltime anomalies
     EXAMPLES:

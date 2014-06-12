@@ -39,9 +39,9 @@ import util_ffproc as uf
 # IMPORTANT: the two lines up should be commented out!
 
 # ------------------- INPUT -----------------------------
-xcorr_limit = -1000
-#remote_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
-remote_dir = '/home/hosseini/Work/Scripts/gitHUB/FFM/INVERSION_STEP01_COMMON_CORRECTION/RESULTS/TEST'
+xcorr_limit = 0.8
+#remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/P_measure_1_sec_LAMBDA_1-5_32_100'
+remote_dir = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 
 # All stations is already disabled, so the following flag does not change anything
 all_stations = False
@@ -92,8 +92,8 @@ def nr_dt(t_shift_array, max_ts=180., width=1., num_bands=1, enum=0, leg='defaul
     # The next two lines should be uncomment first
     # Second: continue after two lines....
     
-    y_l = open(os.path.join('statistics_all', 'yband' + str(enum)), 'w')
-    pickle.dump(y_line, y_l)
+    #y_l = open(os.path.join('statistics_all', 'yband' + str(enum)), 'w')
+    #pickle.dump(y_line, y_l)
     
     # (cont) in this part, first we load the data for all source receiver pairs...
     # note that there is not difference between band01 to the last band! since we consider all
@@ -101,13 +101,13 @@ def nr_dt(t_shift_array, max_ts=180., width=1., num_bands=1, enum=0, leg='defaul
     # to load and calculate the percentage
     # IMPORTANT: the two lines up should be commented out!
     
-    #y_l = open(os.path.join('statistics_all', 'yband' + str(enum)))
-    #y_l_all = pickle.load(y_l)
-    #for i in range(len(y_l_all)-1, -1, -1):
-    #    if y_l_all[i] < 1:
-    #        del y_l_all[i]
-    #        del y_line[i]
-    #        del x_line[i]
+    y_l = open(os.path.join('statistics_all', 'yband' + str(enum)))
+    y_l_all = pickle.load(y_l)
+    for i in range(len(y_l_all)-1, -1, -1):
+        if y_l_all[i] < 1:
+            del y_l_all[i]
+            del y_line[i]
+            del x_line[i]
 
     #plt.plot(x_line, np.array(y_line, dtype=float)/np.array(y_l_all, dtype=float)*100., lw=3.0, label=leg,
     #         color=dic_color[str(enum)])

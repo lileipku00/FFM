@@ -23,7 +23,8 @@ import os
 import sys
 
 # ------------------- INPUT -----------------------------
-processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
+#processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
+processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/P_measure_1_sec_LAMBDA_1-5_32_100'
 band = 'band01'
 #band = 'BB'
 xcorr_limit = -100
@@ -102,7 +103,7 @@ print '%s unique station-event pairs found...' % len(stations_info_trim)
 print '------------------------'
 print '\nPlotting Events...'
 
-m = Basemap(projection='cyl', lon_0=0.0, lat_0=0.0, resolution='c')
+m = Basemap(projection='robin', lon_0=180.0, lat_0=0.0, resolution='c')
 #m.drawcoastlines()
 m.fillcontinents()
 m.drawparallels(np.arange(-90., 120., 30.))
@@ -117,7 +118,8 @@ for i in range(len(events_info)):
         focmecs = [float(events_info[i][2]), float(events_info[i][3]), float(events_info[i][4]),
                     float(events_info[i][5]), float(events_info[i][6]), float(events_info[i][7])]
         ax = plt.gca()
-        b = Beach(focmecs, xy=(x, y), width=4.5, linewidth=1, alpha=0.85)
+        #b = Beach(focmecs, xy=(x, y), width=4.5, linewidth=1, alpha=0.85)
+	b = Beach(focmecs, xy=(x, y), alpha=0.85, size=200, linewidth=1, width=500000)	
         b.set_zorder(10)
         ax.add_collection(b)
     except Exception, e:
