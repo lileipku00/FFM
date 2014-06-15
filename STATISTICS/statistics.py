@@ -45,7 +45,7 @@ remove_GSN_median = True
 # ------------------- nr_dt -----------------------------
 
 
-def nr_dt(t_shift_array, max_ts=2., width=0.01, num_bands=1, enum=0, leg='default', line_plot=False):
+def nr_dt(t_shift_array, max_ts=30., width=0.1, num_bands=1, enum=0, leg='default', line_plot=False):
     """
     histogram plot for all measured traveltime anomalies
     EXAMPLES:
