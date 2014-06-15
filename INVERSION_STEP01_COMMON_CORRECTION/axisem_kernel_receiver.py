@@ -34,7 +34,7 @@ all_events = ['0274.2009.273.a']
 min_depth = -10
 max_depth = 1000
 
-min_xcorr = 0.98
+min_xcorr = 0.8
 max_xcorr = 1.01
 
 #min_epi = 32
