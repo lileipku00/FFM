@@ -29,15 +29,16 @@ TODO
 """
 
 # ------------------- INPUT -----------------------------
-events_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/P_measure_1_sec_LAMBDA_1-5_32_100'
-phase = 'P'
+events_dir = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
+phase = 'Pdiff'
 req_band = 'band01'
 #all_events = ['0274.2009.273.a', '0173.2003.087.a', '0209.2005.016.a', '0306.2008.269.a', '0718.2004.072.a']
-all_events = ['0274.2009.273.a', '0173.2003.087.a']
+#all_events = ['0224.2009.156.a']
+all_events = ['0274.2009.273.a']
 #all_events = True
 
 # ================== raydata
-input_file_name_part = 'test'
+input_file_name_part = 'comparison'
 twinned = 'None'
 max_num_arrival = 1
 delay_wrt_first_arrival = 20
@@ -55,21 +56,23 @@ np_req = 4
 ############## CRITERIA ###############
 # WARNING: all the intervals are min <= ... < max
 min_depth = -10
-max_depth = 1000
+max_depth = 2000
 
-min_xcorr = 0.85
-max_xcorr = 1.01
+min_xcorr = -1000
+max_xcorr = 1000
 
-min_epi = 32
-max_epi = 85.01
+#min_epi = 32
+#max_epi = 97.1
+min_epi = 90.0
+max_epi = 180.1
 
-check_clip = True
+check_clip = False
 #######################################
 
 # Diagnosis plots:
 check_selections = True
 run_raydata = True
-run_raymatrix = True
+run_raymatrix = False
 corr_io_list = [1, 1, 1]     # Ellipticity, crustal correction, elevation
 bg_model = 'IASP91'
 selected_events_add = './info/selected_events_indexed.txt'
