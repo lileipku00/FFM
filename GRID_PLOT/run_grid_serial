@@ -1,0 +1,21 @@
+for BANDS in band01 band02 band03 band04 band05 band06 band07 band08
+do
+    echo $BANDS
+    rm -rv MAP_OUTPUT/*
+    wait
+    python Pdiff_dt_density.py $BANDS F
+    wait
+    mv MAP_CORR_MEASUREMENTS MAP_CORR_MEASUREMENTS_dT_$BANDS
+    wait
+done
+
+for BANDS in band01 band02 band03 band04 band05 band06 band07 band08
+do
+    echo $BANDS
+    rm -rv MAP_OUTPUT/*
+    wait
+    python Pdiff_dt_density.py $BANDS T
+    wait
+    mv MAP_CORR_MEASUREMENTS MAP_CORR_MEASUREMENTS_ray_$BANDS
+    wait
+done

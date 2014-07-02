@@ -32,23 +32,28 @@ import time
 #processed_events_add = '/import/neptun-dunkles/hosseini/PROCESSING/ECORR'
 #processed_events_add = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 processed_events_add = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/gitHUB/myrepo_gitHUB/CORR_MEASUREMENTS'
-band = 'band06'
+band = sys.argv[1]
 #band = 'BB'
 xcorr_limit = 0.8
 gr_x = 720
 npts = 1800
-parts = 80
+parts = 30
 #gr_x = 18
 #npts = 180
 #parts = 1
 projection = 'robin'
-ray_coverage = False
+ray_coverage = sys.argv[2]
+if ray_coverage == 'F':
+    ray_coverage = False
+elif ray_coverage == 'T':
+    ray_coverage = True
+print 'Ray coverage: %s' % ray_coverage
 read_only = False
 
 remove_GSN_median = True
 
 # MAP projection
-long_0 = 180
+long_0 = 0.
 
 GSN_stations = \
     ['II.AAK', 'II.ABKT', 'II.ABPO', 'IU.ADK', 'IU.AFI', 'II.ALE', 'IU.ANMO', 'IU.ANTO', 'CU.ANWB', 'II.ARU', 'II.ASCN',
@@ -70,11 +75,11 @@ GSN_stations = \
 
 # -------------------------------------------------------
 
-if raw_input('Moved the items in MAP_* dir?(y/n)').lower() == 'n':
-    sys.exit()
-if not read_only:
-    if raw_input('Removed the items in MAP_OUTPUT dir?(y/n)').lower() == 'n':
-        sys.exit()
+#if raw_input('Moved the items in MAP_* dir?(y/n)').lower() == 'n':
+#    sys.exit()
+#if not read_only:
+#    if raw_input('Removed the items in MAP_OUTPUT dir?(y/n)').lower() == 'n':
+#        sys.exit()
 
 #############################################################
 ####################### FUNCTIONS ###########################
@@ -371,7 +376,7 @@ tomo_colormap_2 = _get_colormap({
 
 mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
 #mymap.drawmapboundary(fill_color = 'black', color = 'red')
-mymap.drawcoastlines(color='black')
+#mymap.drawcoastlines(color='black')
 
 data_ls = glob.glob('MAP_OUTPUT/DATA-*')
 nonzero_ls = glob.glob('MAP_OUTPUT/nonzero-*')
@@ -417,60 +422,60 @@ gr_y = gr_x
 grd = mymap.makegrid(gr_x, gr_y, returnxy=True)
 #mymap.contourf(grd[2], grd[3], DATA)
 
-vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
-if not ray_coverage:
-    mymap.pcolormesh(grd[2], grd[3], DATA, cmap=tomo_colormap_2, vmin=-1*vmin/100., vmax=vmin/100.)
-else:
-    import matplotlib.cm as cm
-    mymap.pcolormesh(grd[2], grd[3], DATA, cmap=cm.gray, vmax=10)
+### vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
+### if not ray_coverage:
+###     mymap.pcolormesh(grd[2], grd[3], DATA, cmap=tomo_colormap_2, vmin=-1*vmin/100., vmax=vmin/100.)
+### else:
+###     import matplotlib.cm as cm
+###     mymap.pcolormesh(grd[2], grd[3], DATA, cmap=cm.gray, vmax=10)
 
-#plt.hexbin(grd[2], grd[3], DATA)
-cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=12) 
-plt.show()
-
-
-# Clean 1.0% (dT)
-from scipy.ndimage import gaussian_filter
-DATA_filt = gaussian_filter(DATA, sigma=10.0, order=0)
-DATA_filt = DATA
-mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
-mymap.drawcoastlines()
-# this one is for CMB, based on your notes and corresponding to 1.%
-mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.02537847, vmax=0.02537847)
-cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=24)
-cbar.ax.set_xticklabels(['-1.0%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.0%'])
-plt.show()
-
-# Clean 1.5%
-from scipy.ndimage import gaussian_filter
-DATA_filt = gaussian_filter(DATA, sigma=5.0, order=0)
-DATA_filt = DATA
-mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
-mymap.drawcoastlines()
-# this one is for CMB, based on your notes and corresponding to 1.5%
-mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.0380677, vmax=0.0380677)
-cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=16)
-cbar.ax.set_xticklabels(['-1.5%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.5%'])
-plt.show()
-
-
-# FOR RAY COVERAGE
-from scipy.ndimage import gaussian_filter
-from matplotlib.colors import LogNorm
-DATA_filt = gaussian_filter(DATA, sigma=5.0, order=0)
-DATA_filt = DATA
-mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
-mymap.drawcoastlines(color='black')
-vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
-print vmin
-mymap.pcolormesh(grd[2], grd[3], DATA_filt, norm=LogNorm(vmin=1, vmax=vmin))
-cbar = plt.colorbar(orientation='horizontal')
-cbar.ax.tick_params(labelsize=24)
-#cbar.ax.set_xticklabels(['0.1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '285'])
-plt.show()
+### #plt.hexbin(grd[2], grd[3], DATA)
+### cbar = plt.colorbar(orientation='horizontal')
+### cbar.ax.tick_params(labelsize=12) 
+### plt.show()
+### 
+### 
+### # Clean 1.0% (dT)
+### from scipy.ndimage import gaussian_filter
+### DATA_filt = gaussian_filter(DATA, sigma=10.0, order=0)
+### DATA_filt = DATA
+### mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
+### mymap.drawcoastlines()
+### # this one is for CMB, based on your notes and corresponding to 1.%
+### mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.02537847, vmax=0.02537847)
+### cbar = plt.colorbar(orientation='horizontal')
+### cbar.ax.tick_params(labelsize=24)
+### cbar.ax.set_xticklabels(['-1.0%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.0%'])
+### plt.show()
+### 
+### # Clean 1.5%
+### from scipy.ndimage import gaussian_filter
+### DATA_filt = gaussian_filter(DATA, sigma=5.0, order=0)
+### DATA_filt = DATA
+### mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
+### mymap.drawcoastlines()
+### # this one is for CMB, based on your notes and corresponding to 1.5%
+### mymap.pcolormesh(grd[2], grd[3], DATA_filt, cmap=tomo_colormap_2, vmin=-0.0380677, vmax=0.0380677)
+### cbar = plt.colorbar(orientation='horizontal')
+### cbar.ax.tick_params(labelsize=16)
+### cbar.ax.set_xticklabels(['-1.5%', ' ', ' ', ' ', '0%', ' ', ' ', ' ', '1.5%'])
+### plt.show()
+### 
+### 
+### # FOR RAY COVERAGE
+### from scipy.ndimage import gaussian_filter
+### from matplotlib.colors import LogNorm
+### DATA_filt = gaussian_filter(DATA, sigma=5.0, order=0)
+### DATA_filt = DATA
+### mymap = Basemap(projection=projection, lon_0=long_0, lat_0=0)
+### mymap.drawcoastlines(color='black')
+### vmin = max(abs(np.min(DATA)), abs(np.max(DATA)))
+### print vmin
+### mymap.pcolormesh(grd[2], grd[3], DATA_filt, norm=LogNorm(vmin=1, vmax=vmin))
+### cbar = plt.colorbar(orientation='horizontal')
+### cbar.ax.tick_params(labelsize=24)
+### #cbar.ax.set_xticklabels(['0.1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '285'])
+### plt.show()
 
 # ==================== PICKLING THE REQUIRED INFORMATION ===============================
 print '-------------'

@@ -27,7 +27,7 @@ import sys
 processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/P_measure_1_sec_LAMBDA_1-5_32_100'
 band = 'band01'
 #band = 'BB'
-xcorr_limit = -100
+xcorr_limit = 0.8
 # -------------------------------------------------------
 
 band_period = {
