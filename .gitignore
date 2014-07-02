@@ -4,3 +4,4 @@ STATISTICS/statistics_all
 CHECKED.txt
 PYSPEC/util_PyYSPEC.pyc
 */*.pyc
+GRID_PLOT_COPY/
