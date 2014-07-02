@@ -24,7 +24,9 @@ import sys
 
 # ------------------- INPUT -----------------------------
 #processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
-processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/P_measure_1_sec_LAMBDA_1-5_32_100'
+#processed_events_add = '/import/neptun-helles/hosseini/FFM_RESULTS/P_measure_1_sec_LAMBDA_1-5_32_100'
+#processed_events_add = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/P_measure_1_sec_LAMBDA_1-5_32_100'
+processed_events_add = '/home/hosseini/Work/Scripts/gitHUB/MEASUREMENTS/Pdiff_measure_1_sec_LAMBDA_1-5_90_180'
 band = 'band01'
 #band = 'BB'
 xcorr_limit = 0.8
@@ -78,8 +80,8 @@ for i in range(len(proc_ev_ls)):
             lon = float(info_dt[3])
             clip_tau = int(info_dt[19])
             if xcorr >= xcorr_limit:
-                #if clip_tau == 0:
-                stations_info.append([lat, lon])
+                if clip_tau == 0:
+                    stations_info.append([lat, lon])
     except Exception, e:
         print e
         failed += 1
@@ -119,7 +121,7 @@ for i in range(len(events_info)):
                     float(events_info[i][5]), float(events_info[i][6]), float(events_info[i][7])]
         ax = plt.gca()
         #b = Beach(focmecs, xy=(x, y), width=4.5, linewidth=1, alpha=0.85)
-	b = Beach(focmecs, xy=(x, y), alpha=0.85, size=200, linewidth=1, width=500000)	
+        b = Beach(focmecs, xy=(x, y), alpha=0.85, size=200, linewidth=1, width=500000)
         b.set_zorder(10)
         ax.add_collection(b)
     except Exception, e:
@@ -138,3 +140,34 @@ for i in range(len(stations_info_trim)):
         print '\n\nException in event %s: %s\n\n' % (i, e)
 
 plt.show()
+
+
+### # MATERIALS TO COMBINE EVENTS AND STATIONS AMONG DIFFERENT PHASES AND BANDS
+### import pickle
+### phase = 'Pdiff'
+### band = 'band08'
+### f_ev = open('./events_info_%s_%s.pkl' % (phase, band), 'w')
+### pickle.dump(events_info, f_ev)
+### 
+### f_sta = open('./stations_info_trim_%s_%s.pkl' % (phase, band), 'w')
+### pickle.dump(stations_info_trim, f_sta)
+### 
+### import pickle
+### events_info = []
+### stations_info_trim = []
+### 
+### for phase in ['P', 'Pdiff']:
+###     for band in ['band01', 'band02', 'band03', 'band04', 'band05', 'band06', 'band07', 'band08']:
+###         f_ev = open('./events_info_%s_%s.pkl' % (phase, band), 'rb')
+###         f_sta = open('./stations_info_trim_%s_%s.pkl' % (phase, band), 'rb')
+### 
+###         ev_tmp = pickle.load(f_ev)
+###         sta_tmp = pickle.load(f_sta)
+### 
+###         for item in ev_tmp:
+###             if item not in events_info:
+###                 events_info.append(item)
+### 
+###         for item in sta_tmp:
+###             if item not in stations_info_trim:
+###                 stations_info_trim.append(item)
