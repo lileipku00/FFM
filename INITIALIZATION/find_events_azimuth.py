@@ -92,6 +92,7 @@ for i in range(len(pdata_events)):
     print '-------------'
     print pdata_events[i].split(',')[0]
     print 'info:\nDistance: %s' % dist
+    print 'Azimuth: %s' % cent_ev_gd[1]
     print pdata_events[i]
     enum += 1
 
