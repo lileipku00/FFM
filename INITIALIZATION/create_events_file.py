@@ -77,8 +77,8 @@ for i in range(len(evs_ls)):
         f_source = fio_source.readlines()
         ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
         evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()
-        catalog_depths.append(catalog_depth)
-        inverted_depths.append(inverted_depth)
+        catalog_depths.append(float(catalog_depth))
+        inverted_depths.append(float(inverted_depth))
         
         # if the source file does not contain the inverted source info,
         # the data will be read based on NEIC, HARVARD cataloges
