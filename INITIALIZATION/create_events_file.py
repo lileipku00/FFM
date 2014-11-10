@@ -63,6 +63,8 @@ print '%s events found in the archive!' %(len(evs_ls))
 print '\nProblematic events:'
 first_line = '#eventID,lat,lon,depth,mag,Mrr,Mtt,Mpp,Mrt,Mrp,Mtp\n'
 ev_info = []
+catalog_depths = []
+inverted_depths = []
 for i in range(len(evs_ls)):
     try:
         ev = evs_ls[i]
@@ -75,6 +77,8 @@ for i in range(len(evs_ls)):
         f_source = fio_source.readlines()
         ev_year, ev_julianday, ev_hr, ev_min, ev_sec, ev_msec = f_source[1].split()
         evlat, evlon, catalog_depth, inverted_depth = f_source[3].split()
+        catalog_depths.append(catalog_depth)
+        inverted_depths.append(inverted_depth)
         
         # if the source file does not contain the inverted source info,
         # the data will be read based on NEIC, HARVARD cataloges
