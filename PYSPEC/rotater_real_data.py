@@ -55,12 +55,12 @@ for ev in ls_evs:
                 tr_R.stats.channel = 'BHR'
                 tr_T.data = tr_data_T
                 tr_T.stats.channel = 'BHT'
-                tr_R.write(os.path.join(add_ev, 'BH',
-                                        'dis.%s.%s.%s'
-                                        % (tr_R.stats.station,
-                                           tr_R.stats.location,
-                                           tr_R.stats.channel)),
-                           format='SAC')
+                #tr_R.write(os.path.join(add_ev, 'BH',
+                #                        'dis.%s.%s.%s'
+                #                        % (tr_R.stats.station,
+                #                           tr_R.stats.location,
+                #                           tr_R.stats.channel)),
+                #           format='SAC')
                 tr_T.write(os.path.join(add_ev, 'BH',
                                         'dis.%s.%s.%s'
                                         % (tr_T.stats.station,
