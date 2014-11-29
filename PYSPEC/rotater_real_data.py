@@ -30,41 +30,44 @@ for ev in ls_evs:
         add_ev = os.path.join(add_real_data, ev.split(',')[0])
         ls_E = glob.glob(os.path.join(add_ev, 'BH', '*E'))
         for i in range(len(ls_E)):
-            st_E = read(ls_E[i], format='SAC')[0]
-            st_N = read(os.path.join(add_ev, 'BH',
-                                     'dis.%s.%s.%sN'
-                                     % (st_E.stats.station,
-                                        st_E.stats.location,
-                                        st_E.stats.channel[:-1])),
-                        format='SAC')[0]
+            try:
+                st_E = read(ls_E[i], format='SAC')[0]
+                st_N = read(os.path.join(add_ev, 'BH',
+                                         'dis.%s.%s.%sN'
+                                         % (st_E.stats.station,
+                                            st_E.stats.location,
+                                            st_E.stats.channel[:-1])),
+                            format='SAC')[0]
 
-            (dist, azi, bazi) = gps2DistAzimuth(st_E.stats.sac.evla,
-                                                st_E.stats.sac.evlo,
-                                                st_E.stats.sac.stla,
-                                                st_E.stats.sac.stlo)
+                (dist, azi, bazi) = gps2DistAzimuth(st_E.stats.sac.evla,
+                                                    st_E.stats.sac.evlo,
+                                                    st_E.stats.sac.stla,
+                                                    st_E.stats.sac.stlo)
 
-            (tr_data_R, tr_data_T) = rotate.rotate_NE_RT(st_N.data,
-                                                         st_E.data,
-                                                         bazi)
+                (tr_data_R, tr_data_T) = rotate.rotate_NE_RT(st_N.data,
+                                                             st_E.data,
+                                                             bazi)
 
-            tr_R = st_N.copy()
-            tr_T = st_N.copy()
+                tr_R = st_N.copy()
+                tr_T = st_N.copy()
 
-            tr_R.data = tr_data_R
-            tr_R.stats.channel = 'BHR'
-            tr_T.data = tr_data_T
-            tr_T.stats.channel = 'BHT'
-            tr_R.write(os.path.join(add_ev, 'BH',
-                                    'dis.%s.%s.%s'
-                                    % (tr_R.stats.station,
-                                       tr_R.stats.location,
-                                       tr_R.stats.channel)),
-                       format='SAC')
-            tr_T.write(os.path.join(add_ev, 'BH',
-                                    'dis.%s.%s.%s'
-                                    % (tr_T.stats.station,
-                                       tr_T.stats.location,
-                                       tr_T.stats.channel)),
-                       format='SAC')
+                tr_R.data = tr_data_R
+                tr_R.stats.channel = 'BHR'
+                tr_T.data = tr_data_T
+                tr_T.stats.channel = 'BHT'
+                tr_R.write(os.path.join(add_ev, 'BH',
+                                        'dis.%s.%s.%s'
+                                        % (tr_R.stats.station,
+                                           tr_R.stats.location,
+                                           tr_R.stats.channel)),
+                           format='SAC')
+                tr_T.write(os.path.join(add_ev, 'BH',
+                                        'dis.%s.%s.%s'
+                                        % (tr_T.stats.station,
+                                           tr_T.stats.location,
+                                           tr_T.stats.channel)),
+                           format='SAC')
+            except Exception, e:
+                print '%s: %s' % (ls_E[i], e)
     except Exception, e:
         print e
