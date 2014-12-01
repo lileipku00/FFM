@@ -15,7 +15,8 @@ list_events = '/import/neptun-radler/hosseini-downloads/KASRA/SCRIPTS/' \
               'gitHUB/myrepo_gitHUB/FFM/INITIALIZATION/results/' \
               'selected_events_ALL.txt'
 add_syn_data = '/import/neptun-helles/hosseini/SYN_GALLERIES/YSPEC_SYN_GALLERY_1hz'
-selected_events = ['0274.2009.273.a']
+#selected_events = ['0274.2009.273.a']
+selected_events = 'all'
 # ---------------- END INPUT
 
 # Read select_events_ALL.txt file
@@ -27,8 +28,15 @@ for ev in ls_evs:
         if not selected_events == 'all':
             if not ev.split(',')[0] in selected_events:
                 continue
+        print 20*"="
+        print ev
         add_ev = os.path.join(add_syn_data, ev.split(',')[0])
         ls_E = glob.glob(os.path.join(add_ev, 'SAC_realName', '*E'))
+        ls_T_tmp = glob.glob(os.path.join(add_ev, 'SAC_realName', '*T'))
+        print "Removing all *T file in the directory...",
+        for i in range(len(ls_T_tmp)):
+            os.remove(ls_T_tmp[i])
+        print "DONE"
         for i in range(len(ls_E)):
             try:
                 st_E = read(ls_E[i], format='SAC')[0]
